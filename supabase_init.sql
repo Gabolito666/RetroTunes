@@ -1,5 +1,5 @@
 -- ==============================================================================
--- RETROTUNES - SPRINT 1: DDL & POBLACIÓN INICIAL PARA SUPABASE POSTGRESQL
+-- RETROTUNES - SPRINT 1: DDL, ÍNDICES DE OPTIMIZACIÓN Y SEED DATA EN SUPABASE
 -- ==============================================================================
 
 -- 1. Tabla: roles
@@ -43,16 +43,20 @@ CREATE TABLE IF NOT EXISTS public.productos_musica (
     spotify_album_id VARCHAR(255)
 );
 
--- Índices recomendados para optimización de consultas
+-- ==============================================================================
+-- ÍNDICES B-TREE Y PARCIALES DE ALTO RENDIMIENTO
+-- ==============================================================================
 CREATE INDEX IF NOT EXISTS idx_usuarios_correo ON public.usuarios(correo);
+CREATE INDEX IF NOT EXISTS idx_usuarios_id_rol ON public.usuarios(id_rol);
 CREATE INDEX IF NOT EXISTS idx_productos_formato ON public.productos_musica(formato);
-CREATE INDEX IF NOT EXISTS idx_productos_sku ON public.productos_musica(sku);
+CREATE INDEX IF NOT EXISTS idx_productos_precio_venta ON public.productos_musica(precio_venta);
+CREATE INDEX IF NOT EXISTS idx_productos_stock_disponible ON public.productos_musica(id_producto) WHERE stock > 0;
+CREATE INDEX IF NOT EXISTS idx_artistas_empresas_tipo ON public.artistas_empresas(tipo_entidad);
 
 -- ==============================================================================
 -- POBLACIÓN INICIAL (SEED DATA SPRINT 1)
 -- ==============================================================================
 
--- Insertar los 5 roles si no existen
 INSERT INTO public.roles (nombre_rol) VALUES
     ('ADMIN'),
     ('CLIENTE'),
@@ -61,7 +65,6 @@ INSERT INTO public.roles (nombre_rol) VALUES
     ('TECNICO_OPERACIONES')
 ON CONFLICT (nombre_rol) DO NOTHING;
 
--- Insertar Usuario Administrador por defecto
 INSERT INTO public.usuarios (nombre_completo, correo, clave_usuario, telefono, activo, id_rol)
 SELECT 
     'Administrador RetroTunes', 
@@ -74,7 +77,6 @@ FROM public.roles
 WHERE nombre_rol = 'ADMIN'
 ON CONFLICT (correo) DO NOTHING;
 
--- Insertar los 4 productos semilla
 INSERT INTO public.productos_musica (sku, titulo, formato, precio_venta, precio_alquiler_dia, stock, spotify_album_id) VALUES
     ('VIN-ABBEY-001', 'The Beatles - Abbey Road (Edición Especial 180g)', 'VINILO', 39.99, 4.50, 15, '0ETFjACtuP2ADo6LFhL6HN'),
     ('CAS-THRILLER-002', 'Michael Jackson - Thriller (Cassette Vintage Remastered)', 'CASSETTE', 19.50, 2.50, 10, '2ANVost0y2y52ema1E9xAZ'),
