@@ -1,0 +1,152 @@
+:root {
+  --retro-dark: #121214;
+  --retro-surface: #1e1e24;
+  --retro-surface-light: #2a2a32;
+  --retro-amber: #ff9f1c;
+  --retro-neon: #ff4071;
+  --retro-teal: #2ec4b6;
+  --retro-gold: #f4d06f;
+  --retro-text: #f8f9fa;
+  --retro-muted: #a0a0a8;
+  --retro-border: #383844;
+}
+
+body {
+  background-color: var(--retro-dark);
+  color: var(--retro-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar-retro {
+  background: rgba(30, 30, 36, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--retro-amber);
+}
+
+.brand-retro {
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-size: 1.4rem;
+  background: linear-gradient(135deg, var(--retro-amber), var(--retro-neon));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.vinyl-icon {
+  display: inline-block;
+  margin-right: 8px;
+  animation: spinSlow 8s linear infinite;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Cards & Surfaces */
+.card-retro {
+  background: var(--retro-surface);
+  border: 1px solid var(--retro-border);
+  border-radius: 12px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.card-retro:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 159, 28, 0.2);
+  border-color: var(--retro-amber);
+}
+
+.card-header-retro {
+  background: var(--retro-surface-light);
+  border-bottom: 1px solid var(--retro-border);
+  font-weight: 600;
+}
+
+/* Badges */
+.badge-vinilo {
+  background: linear-gradient(135deg, #2b2d42, #111);
+  color: #edf2f4;
+  border: 1px solid #8d99ae;
+}
+
+.badge-cassette {
+  background: linear-gradient(135deg, #d90429, #ef233c);
+  color: #fff;
+}
+
+.badge-cd {
+  background: linear-gradient(135deg, #0077b6, #00b4d8);
+  color: #fff;
+}
+
+.badge-equipo {
+  background: linear-gradient(135deg, #ca6702, #ee9b00);
+  color: #000;
+  font-weight: bold;
+}
+
+.badge-rol {
+  font-size: 0.8rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 20px;
+}
+
+/* Buttons */
+.btn-retro-primary {
+  background: linear-gradient(135deg, var(--retro-amber), #f77f00);
+  color: #121214;
+  font-weight: 700;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-retro-primary:hover {
+  background: linear-gradient(135deg, #ffa938, #ff8c1a);
+  color: #000;
+  box-shadow: 0 0 15px rgba(255, 159, 28, 0.5);
+}
+
+.btn-retro-secondary {
+  background: transparent;
+  color: var(--retro-amber);
+  border: 1px solid var(--retro-amber);
+}
+
+.btn-retro-secondary:hover {
+  background: var(--retro-amber);
+  color: #121214;
+}
+
+/* Forms */
+.form-control-retro, .form-select-retro {
+  background-color: var(--retro-surface-light);
+  border: 1px solid var(--retro-border);
+  color: var(--retro-text);
+  border-radius: 8px;
+}
+
+.form-control-retro:focus, .form-select-retro:focus {
+  background-color: #33333d;
+  color: #fff;
+  border-color: var(--retro-amber);
+  box-shadow: 0 0 0 0.25rem rgba(255, 159, 28, 0.25);
+}
+
+.form-label-retro {
+  color: var(--retro-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  background-color: var(--retro-surface);
+  border-top: 1px solid var(--retro-border);
+  color: var(--retro-muted);
+}

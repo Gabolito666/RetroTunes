@@ -1,0 +1,12 @@
+com\crud_relacional\com\entidades\Rol.class
+com\crud_relacional\com\repositorio\UsuarioRepository.class
+com\example\app\DataInitializer.class
+com\crud_relacional\com\repositorio\ArtistaEmpresaRepository.class
+com\crud_relacional\com\controlador\CatalogoController.class
+com\example\app\DemoApplication.class
+com\crud_relacional\com\controlador\AuthController.class
+com\crud_relacional\com\repositorio\RolRepository.class
+com\crud_relacional\com\entidades\ProductoMusica.class
+com\crud_relacional\com\entidades\ArtistaEmpresa.class
+com\crud_relacional\com\entidades\Usuario.class
+com\crud_relacional\com\repositorio\ProductoMusicaRepository.class
