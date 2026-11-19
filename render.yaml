@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: retrotunes
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /catalogo
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres
+      - key: SPRING_DATASOURCE_USERNAME
+        value: postgres.zzjmcspwmtxqzxvnhhwv
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: sopVVYBZL2EfqD0y
+      - key: SPOTIFY_CLIENT_ID
+        value: 570906b52a5045be92af9f8d0e0c2461
+      - key: SPOTIFY_CLIENT_SECRET
+        value: 9080a1317d6a4a1da86b0590af37e39e

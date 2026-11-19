@@ -1,0 +1,10 @@
+target/
+.git/
+.gitignore
+.agent/
+.gemini/
+uploads/
+*.log
+.idea/
+.vscode/
+*.iml
