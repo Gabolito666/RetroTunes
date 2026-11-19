@@ -6,6 +6,7 @@ import com.crud_relacional.com.repositorio.RolRepository;
 import com.crud_relacional.com.repositorio.UsuarioRepository;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,11 +22,13 @@ public class AuthController {
 
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // Cero capa Service: Inyección directa de repositorios por constructor
-    public AuthController(UsuarioRepository usuarioRepository, RolRepository rolRepository) {
+    // Cero capa Service: Inyección directa de repositorios y codificador BCrypt por constructor
+    public AuthController(UsuarioRepository usuarioRepository, RolRepository rolRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.rolRepository = rolRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/")
@@ -59,10 +62,25 @@ public class AuthController {
                                 @RequestParam("clave") String clave,
                                 HttpSession session,
                                 Model model) {
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreoAndClaveUsuario(correo.trim(), clave);
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreo(correo.trim());
 
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
+            String stored = usuario.getClave_usuario() != null ? usuario.getClave_usuario() : usuario.getClaveUsuario();
+            boolean valid = (stored != null && passwordEncoder.matches(clave, stored)) || clave.equals(stored);
+
+            if (!valid) {
+                model.addAttribute("mensajeError", "Correo o clave incorrectos.");
+                model.addAttribute("correoIngresado", correo);
+                return "login";
+            }
+
+            // Migración automática a BCrypt si la clave anterior estaba en texto plano
+            if (clave.equals(stored) && (stored == null || (!stored.startsWith("$2a$") && !stored.startsWith("$2b$") && !stored.startsWith("$2y$")))) {
+                usuario.setClave_usuario(passwordEncoder.encode(clave));
+                usuarioRepository.save(usuario);
+            }
+
             if (Boolean.FALSE.equals(usuario.getActivo())) {
                 model.addAttribute("mensajeError", "Tu cuenta se encuentra inactiva. Contacta al administrador.");
                 return "login";
@@ -114,6 +132,8 @@ public class AuthController {
         Rol rolCliente = rolRepository.findByNombreRol("CLIENTE")
                 .orElseGet(() -> rolRepository.save(new Rol("CLIENTE")));
 
+        // Cifrado con BCrypt antes de persistir en base de datos
+        usuario.setClave_usuario(passwordEncoder.encode(usuario.getClave_usuario()));
         usuario.setCorreo(usuario.getCorreo().trim());
         usuario.setRol(rolCliente);
         usuario.setActivo(true);

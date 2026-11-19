@@ -101,51 +101,157 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 2: Ventas por Usuario (Consolidados por Cliente) -->
+        <!-- SECCIÓN 2: Reporte Detallado de Compras Individuales por Cliente -->
         <div class="card-retro p-4 mb-4">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
                 <div>
                     <h2 class="h5 text-light fw-medium mb-1">
-                        <i class="bi bi-people text-info me-2"></i>2. Ventas Consolidadas por Usuario
+                        <i class="bi bi-people text-info me-2"></i>2. Reporte Detallado de Compras Individuales por Cliente
                     </h2>
-                    <p class="text-secondary small mb-0">Auditoría por cliente, frecuencia de compra, total de piezas adquiridas y monto acumulado.</p>
+                    <p class="text-secondary small mb-0">Auditoría consolidada por cliente con historial expandible de compras individuales, facturas emitidas, ítems y formatos físicos.</p>
                 </div>
                 <div class="d-flex gap-2">
-                    <a th:href="@{/admin/reportes/pdf(tipo='ventas-usuario')}" target="_blank" class="btn-retro-secondary btn-sm" title="Descargar PDF">
+                    <a th:href="@{/admin/reportes/pdf(tipo='ventas-individuales')}" target="_blank" class="btn-retro-secondary btn-sm" title="Descargar PDF Detallado">
                         <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Exportar PDF
                     </a>
-                    <a th:href="@{/admin/reportes/excel(tipo='ventas-usuario')}" class="btn-retro-secondary btn-sm" title="Descargar Excel">
+                    <a th:href="@{/admin/reportes/excel(tipo='ventas-individuales')}" class="btn-retro-secondary btn-sm" title="Descargar Excel Detallado">
                         <i class="bi bi-file-earmark-excel text-success me-1"></i> Exportar Excel
                     </a>
                 </div>
             </div>
 
             <div class="table-responsive">
-                <table class="table table-retro table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                <table class="table table-retro mb-0" style="background: transparent; font-size: 0.875rem;">
                     <thead>
                         <tr style="border-bottom: 2px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th style="width: 40px;"></th>
                             <th>Cliente</th>
                             <th>Contacto</th>
-                            <th class="text-center">Órdenes</th>
-                            <th class="text-center">Ítems</th>
+                            <th class="text-center">Compras</th>
                             <th class="text-end">Total Facturado</th>
-                            <th class="text-center">Última Operación</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="vu : ${ventasPorUsuario}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
-                            <td>
-                                <span class="text-light fw-medium d-block" th:text="${vu.nombreCliente}">Nombre</span>
-                                <span class="meta-mono text-muted small" th:text="'ID: ' + ${vu.idUsuario}">ID: 1</span>
-                            </td>
-                            <td>
-                                <span class="meta-mono text-secondary small d-block" th:text="${vu.correo}">correo@ejemplo.com</span>
-                                <span class="meta-mono text-muted small" th:text="${vu.telefono}">+57 300 000</span>
-                            </td>
-                            <td class="text-center meta-mono text-light" th:text="${vu.totalFacturas}">0</td>
-                            <td class="text-center meta-mono text-secondary" th:text="${vu.totalItems}">0</td>
-                            <td class="text-end meta-mono price-display" th:text="'$' + ${#numbers.formatDecimal(vu.totalGastado, 1, 2)}">$0.00</td>
-                            <td class="text-center meta-mono text-muted small" th:text="${vu.ultimaCompra}">-</td>
+                        <th:block th:each="c : ${reporteClientesCompras}">
+                            <!-- Fila Resumen del Cliente -->
+                            <tr style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-link p-0 text-secondary text-decoration-none" 
+                                            type="button" 
+                                            data-bs-toggle="collapse" 
+                                            th:attr="data-bs-target='#comprasCliente-' + ${c.idUsuario}, aria-controls='comprasCliente-' + ${c.idUsuario}"
+                                            title="Desplegar compras individuales">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-circle" style="width: 30px; height: 30px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-weight: bold; font-size: 0.75rem;"
+                                             th:text="${#strings.substring(c.nombreCliente, 0, 1)}">U</div>
+                                        <div>
+                                            <span class="text-light fw-medium d-block" th:text="${c.nombreCliente}">Nombre</span>
+                                            <span class="meta-mono text-muted small" th:text="'ID Usuario: #' + ${c.idUsuario}">ID: 1</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="meta-mono text-secondary small d-block" th:text="${c.correo}">correo@ejemplo.com</span>
+                                    <span class="meta-mono text-muted small" th:text="${c.telefono}">+57 300 000</span>
+                                </td>
+                                <td class="text-center meta-mono">
+                                    <span class="badge bg-dark border border-secondary text-light px-2 py-1" th:text="${c.totalCompras} + ' compras'">0 compras</span>
+                                </td>
+                                <td class="text-end meta-mono price-display fw-bold" th:text="'$' + ${#numbers.formatDecimal(c.totalGastado, 1, 2)}">$0.00</td>
+                                <td class="text-center">
+                                    <button class="btn-retro-secondary btn-sm py-1 px-2"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            th:attr="data-bs-target='#comprasCliente-' + ${c.idUsuario}">
+                                        <i class="bi bi-receipt me-1"></i> Detalle Compras
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Panel Expandible de Compras Individuales -->
+                            <tr class="p-0">
+                                <td colspan="6" class="p-0 border-0">
+                                    <div class="collapse" th:id="'comprasCliente-' + ${c.idUsuario}">
+                                        <div class="p-3 my-2 mx-2 mx-md-3 rounded" style="background: rgba(18, 22, 31, 0.95); border: 1px dashed var(--border-hairline);">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="text-info small fw-bold mb-0">
+                                                    <i class="bi bi-clock-history me-1"></i> Compras Individuales Registradas para <span th:text="${c.nombreCliente}">Cliente</span>
+                                                </h6>
+                                                <span class="text-muted small meta-mono" th:text="'Total compras: ' + ${#lists.size(c.compras)}">Total: 0</span>
+                                            </div>
+
+                                            <div th:if="${#lists.isEmpty(c.compras)}" class="text-muted small py-2">
+                                                No se registran compras individuales procesadas para este usuario.
+                                            </div>
+
+                                            <div th:each="compra : ${c.compras}" class="mb-3 p-3 rounded" style="background: rgba(13, 16, 23, 0.98); border: 1px solid rgba(255, 255, 255, 0.08);">
+                                                <!-- Cabecera de la Factura Individual -->
+                                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 pb-2 gap-2" style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                        <span class="badge bg-primary text-light meta-mono" th:text="${compra.codigoFactura}">FAC-0001</span>
+                                                        <span class="meta-mono text-secondary small">
+                                                            <i class="bi bi-calendar3 me-1"></i><span th:text="${compra.fechaHora}">2026-03-30 10:00:00</span>
+                                                        </span>
+                                                        <span class="badge bg-dark border text-secondary meta-mono small" th:text="${compra.metodoPago}">TARJETA</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="text-secondary small">Total Factura:</span>
+                                                        <span class="meta-mono price-display fw-bold" th:text="'$' + ${#numbers.formatDecimal(compra.total, 1, 2)}">$0.00</span>
+                                                        <a th:href="@{'/compras/factura/pdf/' + ${compra.idVenta}}" target="_blank" class="btn-retro-secondary btn-sm py-0 px-2" title="Descargar Copia Factura PDF">
+                                                            <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
+                                                        </a>
+                                                        <a th:href="@{'/compras/confirmacion/' + ${compra.idVenta}}" target="_blank" class="btn-retro-secondary btn-sm py-0 px-2" title="Ver Comprobante">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Desglose de Ítems y Formatos -->
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm mb-0" style="font-size: 0.8125rem; color: #cbd5e1;">
+                                                        <thead>
+                                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); color: var(--text-secondary);">
+                                                                <th style="width: 15%;">SKU</th>
+                                                                <th style="width: 40%;">Ítem / Álbum / Equipo</th>
+                                                                <th style="width: 15%;">Formato Físico</th>
+                                                                <th style="width: 10%;" class="text-center">Cant.</th>
+                                                                <th style="width: 10%;" class="text-end">Precio Unit.</th>
+                                                                <th style="width: 10%;" class="text-end">Subtotal</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr th:each="item : ${compra.items}" style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                                                <td class="meta-mono text-muted" th:text="${item.sku}">SKU-001</td>
+                                                                <td>
+                                                                    <span class="text-light fw-medium" th:text="${item.titulo}">Título</span>
+                                                                    <span class="text-secondary small d-block" th:if="${item.artista != null and !#strings.isEmpty(item.artista)}" th:text="${item.artista}">Artista</span>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="badge-signature" style="font-size: 0.72rem;">
+                                                                        <i class="bi" th:classappend="${item.formato == 'VINILO' ? 'bi-vinyl text-info' : (item.formato == 'CASSETTE' ? 'bi-cassette text-warning' : (item.formato == 'CD' ? 'bi-disc text-primary' : 'bi-speaker text-success'))}"></i>
+                                                                        <span th:text="${item.formato}">VINILO</span>
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-center meta-mono" th:text="${item.cantidad}">1</td>
+                                                                <td class="text-end meta-mono" th:text="'$' + ${#numbers.formatDecimal(item.precioUnitario, 1, 2)}">$0.00</td>
+                                                                <td class="text-end meta-mono price-display" th:text="'$' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}">$0.00</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </th:block>
+                        <tr th:if="${#lists.isEmpty(reporteClientesCompras)}">
+                            <td colspan="6" class="text-center text-muted py-4">No hay clientes con compras registradas para auditoría.</td>
                         </tr>
                     </tbody>
                 </table>

@@ -53,6 +53,88 @@ public class ReporteExcelHelper {
         }
     }
 
+    public static byte[] generarReporteComprasIndividualesPorClienteExcel(List<AdminController.ClienteReporteComprasDto> datos) throws Exception {
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            CellStyle headerStyle = crearEstiloCabecera(workbook);
+            CellStyle currencyStyle = crearEstiloMoneda(workbook);
+
+            Sheet sheet = workbook.createSheet("Compras Detalladas por Cliente");
+            String[] headers = {
+                    "Cliente", "Correo", "Teléfono", 
+                    "Código Factura", "Fecha y Hora", "Método Pago",
+                    "SKU", "Título Producto", "Formato", "Cantidad", "Precio Unitario", "Subtotal Ítem", "Total Factura"
+            };
+
+            Row h = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell c = h.createCell(i);
+                c.setCellValue(headers[i]);
+                c.setCellStyle(headerStyle);
+            }
+
+            int rIdx = 1;
+            for (AdminController.ClienteReporteComprasDto cliente : datos) {
+                if (cliente.compras() == null || cliente.compras().isEmpty()) {
+                    Row r = sheet.createRow(rIdx++);
+                    r.createCell(0).setCellValue(cliente.nombreCliente());
+                    r.createCell(1).setCellValue(cliente.correo());
+                    r.createCell(2).setCellValue(cliente.telefono());
+                    r.createCell(3).setCellValue("Sin compras");
+                    continue;
+                }
+
+                for (AdminController.CompraIndividualClienteDto compra : cliente.compras()) {
+                    if (compra.items() == null || compra.items().isEmpty()) {
+                        Row r = sheet.createRow(rIdx++);
+                        r.createCell(0).setCellValue(cliente.nombreCliente());
+                        r.createCell(1).setCellValue(cliente.correo());
+                        r.createCell(2).setCellValue(cliente.telefono());
+                        r.createCell(3).setCellValue(compra.codigoFactura());
+                        r.createCell(4).setCellValue(compra.fechaFormateada());
+                        r.createCell(5).setCellValue(compra.metodoPago());
+                        Cell cTot = r.createCell(12);
+                        cTot.setCellValue(compra.total().doubleValue());
+                        cTot.setCellStyle(currencyStyle);
+                        continue;
+                    }
+
+                    for (AdminController.DetalleCompraItemDto item : compra.items()) {
+                        Row r = sheet.createRow(rIdx++);
+                        r.createCell(0).setCellValue(cliente.nombreCliente());
+                        r.createCell(1).setCellValue(cliente.correo());
+                        r.createCell(2).setCellValue(cliente.telefono());
+                        r.createCell(3).setCellValue(compra.codigoFactura());
+                        r.createCell(4).setCellValue(compra.fechaFormateada());
+                        r.createCell(5).setCellValue(compra.metodoPago());
+                        r.createCell(6).setCellValue(item.sku());
+                        r.createCell(7).setCellValue(item.titulo());
+                        r.createCell(8).setCellValue(item.formato());
+                        r.createCell(9).setCellValue(item.cantidad());
+
+                        Cell cPrecio = r.createCell(10);
+                        cPrecio.setCellValue(item.precioUnitario().doubleValue());
+                        cPrecio.setCellStyle(currencyStyle);
+
+                        Cell cSub = r.createCell(11);
+                        cSub.setCellValue(item.subtotal().doubleValue());
+                        cSub.setCellStyle(currencyStyle);
+
+                        Cell cTot = r.createCell(12);
+                        cTot.setCellValue(compra.total().doubleValue());
+                        cTot.setCellStyle(currencyStyle);
+                    }
+                }
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(baos);
+            return baos.toByteArray();
+        }
+    }
+
     public static byte[] generarReporteAlquileresExcel(List<AdminController.AlquilerReporteDto> datos) throws Exception {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             CellStyle headerStyle = crearEstiloCabecera(workbook);

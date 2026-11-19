@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -29,6 +30,38 @@ public class AdminController {
     public record AlquilerReporteDto(Long idAlquiler, String codigo, String equipoTitulo, String equipoSku, 
                                      String clienteNombre, String clienteCorreo, LocalDate fechaInicio, LocalDate fechaFin, 
                                      long dias, BigDecimal montoAlquiler, BigDecimal depositoGarantia, String estado) {}
+
+    public record DetalleCompraItemDto(
+            String sku,
+            String titulo,
+            String formato,
+            int cantidad,
+            BigDecimal precioUnitario,
+            BigDecimal subtotal
+    ) {}
+
+    public record CompraIndividualClienteDto(
+            Long idVenta,
+            String codigoFactura,
+            LocalDateTime fechaHora,
+            String fechaFormateada,
+            String metodoPago,
+            BigDecimal total,
+            int totalItems,
+            List<DetalleCompraItemDto> items
+    ) {}
+
+    public record ClienteReporteComprasDto(
+            Long idUsuario,
+            String nombreCliente,
+            String correo,
+            String telefono,
+            int totalFacturas,
+            int totalItems,
+            BigDecimal totalGastado,
+            String ultimaCompra,
+            List<CompraIndividualClienteDto> compras
+    ) {}
 
     private final VentaRepository ventaRepository;
     private final AlquilerEquipoRepository alquilerEquipoRepository;
@@ -84,6 +117,47 @@ public class AdminController {
         return "admin/dashboard";
     }
 
+    @GetMapping("/facturas")
+    public String facturasAdmin(@RequestParam(value = "q", required = false) String busqueda,
+                                HttpSession session, 
+                                Model model) {
+        if (!esAdmin(session)) {
+            return "redirect:/login";
+        }
+
+        List<Venta> todas = ventaRepository.findAll();
+        todas.sort((a, b) -> b.getFecha_hora().compareTo(a.getFecha_hora()));
+
+        if (busqueda != null && !busqueda.isBlank()) {
+            String q = busqueda.trim().toLowerCase();
+            todas = todas.stream().filter(v -> 
+                (v.getCodigo_factura() != null && v.getCodigo_factura().toLowerCase().contains(q)) ||
+                (v.getCliente() != null && v.getCliente().getNombre_completo() != null && v.getCliente().getNombre_completo().toLowerCase().contains(q)) ||
+                (v.getCliente() != null && v.getCliente().getCorreo() != null && v.getCliente().getCorreo().toLowerCase().contains(q)) ||
+                (v.getMetodo_pago() != null && v.getMetodo_pago().toLowerCase().contains(q))
+            ).toList();
+            model.addAttribute("busqueda", busqueda.trim());
+        }
+
+        BigDecimal sumaTotalFacturado = todas.stream()
+                .map(v -> v.getMonto_total() != null ? v.getMonto_total() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        int totalItemsVendidos = 0;
+        for (Venta v : todas) {
+            if (v.getDetalles() != null) {
+                totalItemsVendidos += v.getDetalles().stream().mapToInt(DetalleVenta::getCantidad).sum();
+            }
+        }
+
+        model.addAttribute("facturas", todas);
+        model.addAttribute("totalFacturas", todas.size());
+        model.addAttribute("montoFacturado", sumaTotalFacturado);
+        model.addAttribute("totalItemsVendidos", totalItemsVendidos);
+
+        return "admin/facturas";
+    }
+
     @GetMapping("/reportes")
     public String reportes(HttpSession session, Model model) {
         if (!esAdmin(session)) {
@@ -93,10 +167,12 @@ public class AdminController {
         List<VentaPorTipoDto> ventasPorTipo = obtenerReporteVentasPorTipo();
         List<VentaPorUsuarioDto> ventasPorUsuario = obtenerReporteVentasPorUsuario();
         List<AlquilerReporteDto> alquileresReporte = obtenerReporteAlquileres();
+        List<ClienteReporteComprasDto> reporteClientesCompras = obtenerReporteComprasDetalladasPorCliente();
 
         model.addAttribute("ventasPorTipo", ventasPorTipo);
         model.addAttribute("ventasPorUsuario", ventasPorUsuario);
         model.addAttribute("alquileresReporte", alquileresReporte);
+        model.addAttribute("reporteClientesCompras", reporteClientesCompras);
 
         model.addAttribute("numProductos", productoMusicaRepository.count());
         model.addAttribute("numVentas", ventaRepository.count());
@@ -219,6 +295,83 @@ public class AdminController {
         return resultado;
     }
 
+    public List<ClienteReporteComprasDto> obtenerReporteComprasDetalladasPorCliente() {
+        List<Venta> todasLasVentas = ventaRepository.findAll();
+        Map<Long, List<Venta>> ventasPorCliente = new HashMap<>();
+
+        for (Venta v : todasLasVentas) {
+            if (v.getCliente() != null) {
+                ventasPorCliente.computeIfAbsent(v.getCliente().getId_usuario(), k -> new ArrayList<>()).add(v);
+            }
+        }
+
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<ClienteReporteComprasDto> resultado = new ArrayList<>();
+
+        for (Usuario u : usuarios) {
+            List<Venta> ventasCliente = ventasPorCliente.getOrDefault(u.getId_usuario(), new ArrayList<>());
+            ventasCliente.sort((a, b) -> b.getFecha_hora().compareTo(a.getFecha_hora()));
+
+            List<CompraIndividualClienteDto> comprasDto = new ArrayList<>();
+            int totalItemsCliente = 0;
+            BigDecimal totalGastadoCliente = BigDecimal.ZERO;
+            String ultimaCompraStr = "Sin compras";
+
+            if (!ventasCliente.isEmpty()) {
+                ultimaCompraStr = ventasCliente.get(0).getFecha_hora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+
+            for (Venta v : ventasCliente) {
+                totalGastadoCliente = totalGastadoCliente.add(v.getMonto_total() != null ? v.getMonto_total() : BigDecimal.ZERO);
+                List<DetalleCompraItemDto> itemsDto = new ArrayList<>();
+                int itemsVenta = 0;
+
+                if (v.getDetalles() != null) {
+                    for (DetalleVenta d : v.getDetalles()) {
+                        String sku = (d.getProducto() != null && d.getProducto().getSku() != null) ? d.getProducto().getSku() : "N/A";
+                        String titulo = (d.getProducto() != null && d.getProducto().getTitulo() != null) ? d.getProducto().getTitulo() : "Producto";
+                        String formato = (d.getProducto() != null && d.getProducto().getFormato() != null) ? d.getProducto().getFormato() : "VINILO";
+                        BigDecimal precio = d.getPrecio_unitario() != null ? d.getPrecio_unitario() : BigDecimal.ZERO;
+                        BigDecimal subtotal = d.getSubtotal() != null ? d.getSubtotal() : BigDecimal.ZERO;
+
+                        itemsVenta += d.getCantidad();
+                        itemsDto.add(new DetalleCompraItemDto(sku, titulo, formato, d.getCantidad(), precio, subtotal));
+                    }
+                }
+
+                totalItemsCliente += itemsVenta;
+                String fechaFormateada = v.getFecha_hora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+                comprasDto.add(new CompraIndividualClienteDto(
+                        v.getId_venta(),
+                        v.getCodigo_factura(),
+                        v.getFecha_hora(),
+                        fechaFormateada,
+                        v.getMetodo_pago() != null ? v.getMetodo_pago() : "TARJETA",
+                        v.getMonto_total() != null ? v.getMonto_total() : BigDecimal.ZERO,
+                        itemsVenta,
+                        itemsDto
+                ));
+            }
+
+            resultado.add(new ClienteReporteComprasDto(
+                    u.getId_usuario(),
+                    u.getNombre_completo(),
+                    u.getCorreo(),
+                    u.getTelefono() != null ? u.getTelefono() : "N/A",
+                    ventasCliente.size(),
+                    totalItemsCliente,
+                    totalGastadoCliente,
+                    ultimaCompraStr,
+                    comprasDto
+            ));
+        }
+
+        // Ordenar por total gastado descendente
+        resultado.sort((a, b) -> b.totalGastado().compareTo(a.totalGastado()));
+        return resultado;
+    }
+
     @GetMapping("/reportes/excel")
     public void exportarExcel(@RequestParam(value = "tipo", required = false, defaultValue = "completo") String tipo,
                               HttpSession session, 
@@ -232,6 +385,10 @@ public class AdminController {
         String filename;
 
         switch (tipo.toLowerCase().trim()) {
+            case "ventas-individuales":
+                excelBytes = ReporteExcelHelper.generarReporteComprasIndividualesPorClienteExcel(obtenerReporteComprasDetalladasPorCliente());
+                filename = "reporte-retrotunes-compras-individuales-clientes.xlsx";
+                break;
             case "ventas-tipo":
                 excelBytes = ReporteExcelHelper.generarReporteVentasPorTipoExcel(obtenerReporteVentasPorTipo());
                 filename = "reporte-retrotunes-ventas-por-tipo.xlsx";
@@ -276,6 +433,10 @@ public class AdminController {
         String filename;
 
         switch (tipo.toLowerCase().trim()) {
+            case "ventas-individuales":
+                pdfBytes = ReportePdfHelper.generarReporteComprasDetalladasPorCliente(obtenerReporteComprasDetalladasPorCliente());
+                filename = "reporte-compras-individuales-clientes.pdf";
+                break;
             case "ventas-usuario":
                 pdfBytes = ReportePdfHelper.generarReporteVentasPorUsuario(obtenerReporteVentasPorUsuario());
                 filename = "reporte-ventas-por-usuario.pdf";

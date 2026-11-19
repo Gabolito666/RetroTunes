@@ -163,6 +163,91 @@ public class ReportePdfHelper {
         return baos.toByteArray();
     }
 
+    public static byte[] generarReporteComprasDetalladasPorCliente(List<AdminController.ClienteReporteComprasDto> datos) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document doc = new Document(PageSize.A4, 36, 36, 36, 36);
+        PdfWriter.getInstance(doc, baos);
+        doc.open();
+
+        agregarEncabezado(doc, "REPORTE DETALLADO DE COMPRAS POR CLIENTE", "Auditoría individual de órdenes, fechas, desglose de ítems, formatos y métodos de pago");
+
+        BigDecimal granTotal = BigDecimal.ZERO;
+        int totalComprasGlobal = 0;
+
+        for (AdminController.ClienteReporteComprasDto cliente : datos) {
+            granTotal = granTotal.add(cliente.totalGastado());
+            totalComprasGlobal += cliente.totalFacturas();
+
+            // Sección encabezado del cliente
+            PdfPTable clienteTable = new PdfPTable(1);
+            clienteTable.setWidthPercentage(100);
+            PdfPCell cellCliente = new PdfPCell();
+            cellCliente.setBackgroundColor(new Color(241, 245, 249));
+            cellCliente.setPadding(6);
+            cellCliente.setBorderColor(new Color(203, 213, 225));
+
+            Font fontNombre = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9.5f, PRIMARY_DARK);
+            Font fontSub = FontFactory.getFont(FontFactory.HELVETICA, 8.0f, new Color(71, 85, 105));
+
+            Paragraph p = new Paragraph(cliente.nombreCliente() + " (" + cliente.correo() + " • Tel: " + cliente.telefono() + ")", fontNombre);
+            Paragraph pSub = new Paragraph("Facturas: " + cliente.totalFacturas() + " • Piezas: " + cliente.totalItems() + " • Total Invertido: $" + cliente.totalGastado().setScale(2, RoundingMode.HALF_UP) + " • Última Compra: " + cliente.ultimaCompra(), fontSub);
+            cellCliente.addElement(p);
+            cellCliente.addElement(pSub);
+            clienteTable.addCell(cellCliente);
+            clienteTable.setSpacingBefore(8);
+            clienteTable.setSpacingAfter(4);
+            doc.add(clienteTable);
+
+            if (cliente.compras() == null || cliente.compras().isEmpty()) {
+                Paragraph sinCompras = new Paragraph("   Sin órdenes de compra registradas en el sistema.", FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8.0f, Color.GRAY));
+                doc.add(sinCompras);
+                continue;
+            }
+
+            PdfPTable tableCompras = new PdfPTable(5);
+            tableCompras.setWidthPercentage(100);
+            tableCompras.setWidths(new float[]{2.0f, 2.0f, 1.5f, 3.0f, 1.5f});
+
+            String[] headers = {"CÓDIGO FACTURA", "FECHA / HORA", "PAGO", "ÍTEMS COMPRADOS", "TOTAL"};
+            agregarEncabezadosTabla(tableCompras, headers);
+
+            boolean alt = false;
+            for (AdminController.CompraIndividualClienteDto compra : cliente.compras()) {
+                Color bg = alt ? ALT_ROW_BG : Color.WHITE;
+                alt = !alt;
+
+                StringBuilder itemsDesc = new StringBuilder();
+                if (compra.items() != null) {
+                    for (AdminController.DetalleCompraItemDto item : compra.items()) {
+                        if (itemsDesc.length() > 0) itemsDesc.append("\n");
+                        itemsDesc.append(item.cantidad()).append("x ").append(item.titulo()).append(" [").append(item.formato()).append("] ($").append(item.subtotal().setScale(2, RoundingMode.HALF_UP)).append(")");
+                    }
+                }
+
+                tableCompras.addCell(crearCelda(compra.codigoFactura(), Element.ALIGN_LEFT, bg, true));
+                tableCompras.addCell(crearCelda(compra.fechaFormateada(), Element.ALIGN_CENTER, bg, false));
+                tableCompras.addCell(crearCelda(compra.metodoPago(), Element.ALIGN_CENTER, bg, false));
+                tableCompras.addCell(crearCelda(itemsDesc.toString(), Element.ALIGN_LEFT, bg, false));
+                tableCompras.addCell(crearCelda("$" + compra.total().setScale(2, RoundingMode.HALF_UP), Element.ALIGN_RIGHT, bg, true));
+            }
+            doc.add(tableCompras);
+        }
+
+        // Gran Total Final
+        PdfPTable totalTable = new PdfPTable(2);
+        totalTable.setWidthPercentage(100);
+        totalTable.setWidths(new float[]{4.0f, 2.0f});
+        totalTable.setSpacingBefore(12);
+
+        totalTable.addCell(crearCelda("GRAN TOTAL AUDITORÍA (" + totalComprasGlobal + " compras en " + datos.size() + " clientes)", Element.ALIGN_LEFT, new Color(226, 232, 240), true));
+        totalTable.addCell(crearCelda("$" + granTotal.setScale(2, RoundingMode.HALF_UP), Element.ALIGN_RIGHT, new Color(226, 232, 240), true));
+        doc.add(totalTable);
+
+        agregarPie(doc);
+        doc.close();
+        return baos.toByteArray();
+    }
+
     private static void agregarEncabezado(Document doc, String titulo, String subtitulo) throws Exception {
         Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, PRIMARY_DARK);
         Font subFont = FontFactory.getFont(FontFactory.HELVETICA, 8.5f, new Color(100, 116, 139));

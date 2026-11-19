@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Historial de Facturación')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 1100px;">
+        <!-- Encabezado del Módulo -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 gap-3" style="border-bottom: 1px solid var(--border-hairline);">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-warning text-dark"><i class="bi bi-shield-lock-fill me-1"></i> MODO ADMINISTRADOR</span>
+                    <h1 class="h4 text-light fw-medium mb-0">Historial de Facturación Emitida</h1>
+                </div>
+                <p class="text-secondary small mb-0">Auditoría contable completa de ventas a clientes, consulta en pantalla y emisión de comprobantes oficiales.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/reportes/excel(tipo='ventas-individuales')}" class="btn-retro-primary" style="font-size: 0.8125rem;">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+                </a>
+                <a th:href="@{/admin/dashboard}" class="btn-retro-secondary" style="font-size: 0.8125rem;">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Indicadores de Facturación -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-4">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Total Facturas Emitidas</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-light fw-bold" th:text="${totalFacturas}">0</span>
+                        <span class="meta-mono text-success small"><i class="bi bi-check-circle-fill"></i> Registradas</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Monto Total Facturado</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-success fw-bold meta-mono" th:text="'$' + ${#numbers.formatDecimal(montoFacturado, 1, 2)}">$0.00</span>
+                        <span class="meta-mono text-muted small">USD</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Piezas Físicas Vendidas</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-light fw-bold" th:text="${totalItemsVendidos}">0</span>
+                        <span class="meta-mono text-info small"><i class="bi bi-disc"></i> Unidades</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Búsqueda y Filtrado -->
+        <div class="card-retro p-3 mb-4">
+            <form th:action="@{/admin/facturas}" method="get" class="row g-2 align-items-center">
+                <div class="col-12 col-md-9">
+                    <div class="input-group">
+                        <span class="input-group-text-retro"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" th:value="${busqueda}" 
+                               class="form-control form-control-retro" 
+                               placeholder="Buscar por código de factura (FAC-...), nombre de cliente, correo o método de pago...">
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <button type="submit" class="btn-retro-primary w-100 py-2">
+                        <i class="bi bi-filter"></i> Buscar
+                    </button>
+                </div>
+                <div class="col-6 col-md-1" th:if="${busqueda != null and !#strings.isEmpty(busqueda)}">
+                    <a th:href="@{/admin/facturas}" class="btn-retro-secondary w-100 py-2 text-center" title="Limpiar filtro">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </div>
+            </form>
+            <div th:if="${busqueda != null and !#strings.isEmpty(busqueda)}" class="mt-2 text-secondary small">
+                Filtrando por: <strong class="text-light" th:text="${busqueda}"></strong> • <span th:text="${totalFacturas} + ' resultados encontrados'">0 resultados</span>
+            </div>
+        </div>
+
+        <!-- Tabla de Facturación Emitida -->
+        <div class="card-retro p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom: 1px solid var(--border-hairline);">
+                <h2 class="h6 text-light fw-medium mb-0">
+                    <i class="bi bi-receipt text-primary me-2"></i>Facturas Registradas en Supabase
+                </h2>
+                <span class="meta-mono text-muted small" th:text="${totalFacturas} + ' Facturas'">0 Facturas</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-retro table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th>Código Factura</th>
+                            <th>Cliente</th>
+                            <th>Fecha y Hora</th>
+                            <th>Método de Pago</th>
+                            <th class="text-center">Ítems</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-center" style="width: 220px;">Acciones Oficiales</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(facturas)}">
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                                No se encontraron facturas registradas con los criterios especificados.
+                            </td>
+                        </tr>
+                        <tr th:each="v : ${facturas}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
+                            <td>
+                                <span class="meta-mono text-light fw-medium" th:text="${v.codigo_factura}">FAC-000</span>
+                            </td>
+                            <td>
+                                <span class="text-light fw-medium d-block" th:text="${v.cliente != null ? v.cliente.nombre_completo : 'Cliente General'}">Cliente</span>
+                                <span class="meta-mono text-muted small d-block" th:text="${v.cliente != null ? v.cliente.correo : 'N/A'}">correo</span>
+                            </td>
+                            <td class="meta-mono text-secondary small" th:text="${#temporals.format(v.fecha_hora, 'yyyy-MM-dd HH:mm:ss')}">2026-01-01 12:00:00</td>
+                            <td>
+                                <span class="badge-signature" style="font-size: 0.72rem;">
+                                    <i class="bi" th:classappend="${v.metodo_pago == 'EFECTIVO' ? 'bi-cash' : (v.metodo_pago == 'TRANSFERENCIA' ? 'bi-bank' : 'bi-credit-card')}"></i>
+                                    <span th:text="${v.metodo_pago}">TARJETA</span>
+                                </span>
+                            </td>
+                            <td class="text-center meta-mono text-light" th:text="${v.detalles != null ? #lists.size(v.detalles) : 0}">0</td>
+                            <td class="text-end meta-mono fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(v.monto_total, 1, 2)}">$0.00</td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <!-- Consultar / Ver en Pantalla -->
+                                    <a th:href="@{'/compras/confirmacion/' + ${v.id_venta}}" 
+                                       class="btn-retro-secondary btn-sm" 
+                                       title="Consultar factura en pantalla">
+                                        <i class="bi bi-eye text-info"></i>
+                                    </a>
+                                    <!-- Descargar Copia PDF Oficial -->
+                                    <a th:href="@{'/compras/factura/pdf/' + ${v.id_venta}}" 
+                                       class="btn-retro-secondary btn-sm" 
+                                       title="Descargar copia PDF oficial">
+                                        <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
+                                    </a>
+                                    <!-- Imprimir Factura -->
+                                    <a th:href="@{'/compras/confirmacion/' + ${v.id_venta}(print=true)}" 
+                                       target="_blank" 
+                                       class="btn-retro-secondary btn-sm" 
+                                       title="Imprimir factura">
+                                        <i class="bi bi-printer text-light"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

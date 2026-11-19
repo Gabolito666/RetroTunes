@@ -138,6 +138,12 @@
 
     <div class="d-print-none" th:replace="~{fragments/layout :: footer}"></div>
 
+    <script th:if="${param.print}">
+        window.addEventListener('load', function() {
+            setTimeout(function() { window.print(); }, 300);
+        });
+    </script>
+
     <style>
         @media print {
             body {

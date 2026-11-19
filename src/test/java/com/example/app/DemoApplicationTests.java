@@ -46,6 +46,9 @@ class DemoApplicationTests {
     @Autowired
     private ReservaEspacioRepository reservaEspacioRepository;
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @Test
     @DisplayName("Contexto Spring Boot carga correctamente")
     void contextLoads() {
@@ -268,5 +271,56 @@ class DemoApplicationTests {
             assertEquals("https://i.scdn.co/image/ab67616d0000b2736ee35072df1af802cca09918", noah.getImagen_url(),
                     "Noah Kahan debe tener la portada oficial extraída de Spotify");
         }
+    }
+
+    @Test
+    @DisplayName("Seguridad: Cifrado BCrypt de contraseñas y validación de hash")
+    void testBCryptPasswordHashing() {
+        assertNotNull(passwordEncoder, "El bean PasswordEncoder debe estar disponible");
+
+        // Verificación de hash para admin inicializado
+        Optional<Usuario> adminOpt = usuarioRepository.findByCorreo("admin@retrotunes.com");
+        assertTrue(adminOpt.isPresent(), "El administrador debe existir");
+        String adminHash = adminOpt.get().getClave_usuario();
+        assertNotNull(adminHash);
+        assertTrue(adminHash.startsWith("$2a$") || adminHash.startsWith("$2b$") || adminHash.startsWith("$2y$"),
+                "La clave del administrador debe estar cifrada con BCrypt (inicia con $2)");
+        assertTrue(passwordEncoder.matches("admin123", adminHash),
+                "La contraseña 'admin123' debe coincidir con el hash BCrypt");
+        assertFalse(passwordEncoder.matches("wrongpassword", adminHash),
+                "Una clave errónea no debe coincidir");
+
+        // Verificación de nuevo cifrado
+        String rawPass = "Segura2026!";
+        String encoded = passwordEncoder.encode(rawPass);
+        assertNotEquals(rawPass, encoded);
+        assertTrue(passwordEncoder.matches(rawPass, encoded));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Auditoría: Registro transaccional de Venta y generación de Factura PDF")
+    void testVentaYGeneracionFacturaPdf() throws Exception {
+        Usuario admin = usuarioRepository.findByCorreo("admin@retrotunes.com").orElseThrow();
+        ProductoMusica vinilo = productoMusicaRepository.findByFormato("VINILO").get(0);
+
+        String codFactura = "FAC-TEST-PDF-001";
+        BigDecimal total = vinilo.getPrecio_venta();
+
+        Venta venta = new Venta(codFactura, LocalDateTime.now(), total, "TARJETA", admin);
+        DetalleVenta detalle = new DetalleVenta(venta, vinilo, 1, vinilo.getPrecio_venta(), total);
+        venta.agregarDetalle(detalle);
+
+        Venta guardada = ventaRepository.save(venta);
+        assertNotNull(guardada.getId_venta());
+
+        // Generar Factura PDF oficial
+        byte[] pdfBytes = com.crud_relacional.com.controlador.FacturaPdfHelper.generarFactura(guardada);
+        assertNotNull(pdfBytes, "El PDF de factura no debe ser nulo");
+        assertTrue(pdfBytes.length > 500, "El PDF generado debe contener bytes válidos");
+
+        // Cabecera PDF: %PDF-
+        String header = new String(pdfBytes, 0, 4, java.nio.charset.StandardCharsets.ISO_8859_1);
+        assertEquals("%PDF", header, "El archivo generado debe ser un PDF válido");
     }
 }

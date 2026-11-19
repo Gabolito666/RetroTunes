@@ -10,6 +10,7 @@ import com.crud_relacional.com.repositorio.UsuarioRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -27,15 +28,18 @@ public class DataInitializer implements CommandLineRunner {
     private final UsuarioRepository usuarioRepository;
     private final ProductoMusicaRepository productoMusicaRepository;
     private final SpotifyClientHelper spotifyClientHelper;
+    private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(RolRepository rolRepository,
                            UsuarioRepository usuarioRepository,
                            ProductoMusicaRepository productoMusicaRepository,
-                           SpotifyClientHelper spotifyClientHelper) {
+                           SpotifyClientHelper spotifyClientHelper,
+                           PasswordEncoder passwordEncoder) {
         this.rolRepository = rolRepository;
         this.usuarioRepository = usuarioRepository;
         this.productoMusicaRepository = productoMusicaRepository;
         this.spotifyClientHelper = spotifyClientHelper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -67,13 +71,22 @@ public class DataInitializer implements CommandLineRunner {
             Usuario admin = new Usuario();
             admin.setNombre_completo("Administrador RetroTunes");
             admin.setCorreo("admin@retrotunes.com");
-            admin.setClave_usuario("admin123");
+            admin.setClave_usuario(passwordEncoder.encode("admin123"));
             admin.setTelefono("+57 300 000 0000");
             admin.setActivo(true);
             admin.setRol(rolAdmin);
 
             usuarioRepository.save(admin);
-            log.info("Usuario Administrador semilla verificado: admin@retrotunes.com");
+            log.info("Usuario Administrador semilla verificado y cifrado con BCrypt: admin@retrotunes.com");
+        } else {
+            usuarioRepository.findByCorreo("admin@retrotunes.com").ifPresent(admin -> {
+                String claveActual = admin.getClave_usuario();
+                if (claveActual != null && !claveActual.startsWith("$2a$") && !claveActual.startsWith("$2b$") && !claveActual.startsWith("$2y$")) {
+                    admin.setClave_usuario(passwordEncoder.encode(claveActual));
+                    usuarioRepository.save(admin);
+                    log.info("Contraseña de admin migrada a BCrypt exitosamente.");
+                }
+            });
         }
     }
 
