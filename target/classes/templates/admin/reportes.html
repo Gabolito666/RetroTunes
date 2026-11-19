@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Centro de Reportes y Auditoría')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 1100px;">
+        <!-- Encabezado del Módulo -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 gap-3" style="border-bottom: 1px solid var(--border-hairline);">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-info text-dark"><i class="bi bi-shield-check me-1"></i> PANEL ADMINISTRADOR</span>
+                    <h1 class="h4 text-light fw-medium mb-0">Centro de Reportes y Auditoría</h1>
+                </div>
+                <p class="text-secondary small mb-0">Auditoría contable, métricas por formato físico, consolidado de clientes y gestión de alquileres.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/reportes/excel(tipo='completo')}" class="btn-retro-primary" style="font-size: 0.8125rem;">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Descargar Libro General (.xlsx)
+                </a>
+                <a th:href="@{/admin/dashboard}" class="btn-retro-secondary" style="font-size: 0.8125rem;">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Indicadores Clave -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-4">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Catálogo Activo</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-light fw-bold" th:text="${numProductos}">0</span>
+                        <span class="meta-mono text-muted small">piezas</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Órdenes Facturadas</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-light fw-bold" th:text="${numVentas}">0</span>
+                        <span class="meta-mono text-success small"><i class="bi bi-check-circle"></i> Venta</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Contratos de Alquiler</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-light fw-bold" th:text="${numAlquileres}">0</span>
+                        <span class="meta-mono text-info small"><i class="bi bi-speaker"></i> Custodia</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 1: Ventas por Tipo de Producto (Vinilo, Cassette, CD) -->
+        <div class="card-retro p-4 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+                <div>
+                    <h2 class="h5 text-light fw-medium mb-1">
+                        <i class="bi bi-pie-chart text-warning me-2"></i>1. Ventas por Tipo de Producto
+                    </h2>
+                    <p class="text-secondary small mb-0">Desglose comercial clasificado por Vinilos (180g), Cassettes y Discos Compactos (CD).</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/admin/reportes/pdf(tipo='ventas-tipo')}" target="_blank" class="btn-retro-secondary btn-sm" title="Descargar PDF">
+                        <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Exportar PDF
+                    </a>
+                    <a th:href="@{/admin/reportes/excel(tipo='ventas-tipo')}" class="btn-retro-secondary btn-sm" title="Descargar Excel">
+                        <i class="bi bi-file-earmark-excel text-success me-1"></i> Exportar Excel
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-retro table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th>Formato Físico</th>
+                            <th class="text-center">Unidades Vendidas</th>
+                            <th class="text-center">Transacciones</th>
+                            <th class="text-end">Total Recaudado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="vt : ${ventasPorTipo}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
+                            <td>
+                                <span class="badge-signature">
+                                    <i class="bi" th:classappend="${vt.formato == 'VINILO' ? 'bi-vinyl text-info' : (vt.formato == 'CASSETTE' ? 'bi-cassette text-warning' : (vt.formato == 'CD' ? 'bi-disc text-primary' : 'bi-speaker'))}"></i>
+                                    <span th:text="${vt.formato}">VINILO</span>
+                                </span>
+                            </td>
+                            <td class="text-center meta-mono text-light fw-medium" th:text="${vt.cantidadVendida}">0</td>
+                            <td class="text-center meta-mono text-secondary" th:text="${vt.totalTransacciones} + ' ventas'">0 ventas</td>
+                            <td class="text-end meta-mono price-display" th:text="'$' + ${#numbers.formatDecimal(vt.totalRecaudado, 1, 2)}">$0.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: Ventas por Usuario (Consolidados por Cliente) -->
+        <div class="card-retro p-4 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+                <div>
+                    <h2 class="h5 text-light fw-medium mb-1">
+                        <i class="bi bi-people text-info me-2"></i>2. Ventas Consolidadas por Usuario
+                    </h2>
+                    <p class="text-secondary small mb-0">Auditoría por cliente, frecuencia de compra, total de piezas adquiridas y monto acumulado.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/admin/reportes/pdf(tipo='ventas-usuario')}" target="_blank" class="btn-retro-secondary btn-sm" title="Descargar PDF">
+                        <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Exportar PDF
+                    </a>
+                    <a th:href="@{/admin/reportes/excel(tipo='ventas-usuario')}" class="btn-retro-secondary btn-sm" title="Descargar Excel">
+                        <i class="bi bi-file-earmark-excel text-success me-1"></i> Exportar Excel
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-retro table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th>Cliente</th>
+                            <th>Contacto</th>
+                            <th class="text-center">Órdenes</th>
+                            <th class="text-center">Ítems</th>
+                            <th class="text-end">Total Facturado</th>
+                            <th class="text-center">Última Operación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="vu : ${ventasPorUsuario}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
+                            <td>
+                                <span class="text-light fw-medium d-block" th:text="${vu.nombreCliente}">Nombre</span>
+                                <span class="meta-mono text-muted small" th:text="'ID: ' + ${vu.idUsuario}">ID: 1</span>
+                            </td>
+                            <td>
+                                <span class="meta-mono text-secondary small d-block" th:text="${vu.correo}">correo@ejemplo.com</span>
+                                <span class="meta-mono text-muted small" th:text="${vu.telefono}">+57 300 000</span>
+                            </td>
+                            <td class="text-center meta-mono text-light" th:text="${vu.totalFacturas}">0</td>
+                            <td class="text-center meta-mono text-secondary" th:text="${vu.totalItems}">0</td>
+                            <td class="text-end meta-mono price-display" th:text="'$' + ${#numbers.formatDecimal(vu.totalGastado, 1, 2)}">$0.00</td>
+                            <td class="text-center meta-mono text-muted small" th:text="${vu.ultimaCompra}">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: Reporte Completo de Alquileres -->
+        <div class="card-retro p-4 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+                <div>
+                    <h2 class="h5 text-light fw-medium mb-1">
+                        <i class="bi bi-speaker text-primary me-2"></i>3. Reporte Completo de Alquileres
+                    </h2>
+                    <p class="text-secondary small mb-0">Contratos de audio analógico, equipos arrendados, clientes, fechas y depósitos del 30% en custodia.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/admin/reportes/pdf(tipo='alquileres')}" target="_blank" class="btn-retro-secondary btn-sm" title="Descargar PDF">
+                        <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Exportar PDF
+                    </a>
+                    <a th:href="@{/admin/reportes/excel(tipo='alquileres')}" class="btn-retro-secondary btn-sm" title="Descargar Excel">
+                        <i class="bi bi-file-earmark-excel text-success me-1"></i> Exportar Excel
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-retro table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th>Código</th>
+                            <th>Equipo Arrendado</th>
+                            <th>Cliente</th>
+                            <th>Período</th>
+                            <th class="text-end">Renta</th>
+                            <th class="text-end">Depósito (30%)</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Contrato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(alquileresReporte)}">
+                            <td colspan="8" class="text-center py-4 text-muted small">No hay alquileres registrados en el sistema.</td>
+                        </tr>
+                        <tr th:each="alq : ${alquileresReporte}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
+                            <td>
+                                <span class="meta-mono text-light fw-medium d-block" th:text="${alq.codigo}">ALQ-001</span>
+                            </td>
+                            <td>
+                                <span class="text-light fw-medium d-block" th:text="${alq.equipoTitulo}">Equipo</span>
+                                <span class="meta-mono text-muted small" th:text="${alq.equipoSku}">EQP-0001</span>
+                            </td>
+                            <td>
+                                <span class="text-light d-block" th:text="${alq.clienteNombre}">Cliente</span>
+                                <span class="meta-mono text-muted small" th:text="${alq.clienteCorreo}">correo@ejemplo.com</span>
+                            </td>
+                            <td>
+                                <span class="meta-mono text-secondary small d-block" th:text="${alq.fechaInicio} + ' a ' + ${alq.fechaFin}">2026-01-01</span>
+                                <span class="meta-mono text-muted small" th:text="${alq.dias} + ' día(s)'">3 días</span>
+                            </td>
+                            <td class="text-end meta-mono text-light fw-medium" th:text="'$' + ${#numbers.formatDecimal(alq.montoAlquiler, 1, 2)}">$0.00</td>
+                            <td class="text-end meta-mono text-warning" th:text="'$' + ${#numbers.formatDecimal(alq.depositoGarantia, 1, 2)}">$0.00</td>
+                            <td class="text-center">
+                                <span class="badge" 
+                                      th:classappend="${alq.estado == 'RESERVADO' ? 'bg-primary' : (alq.estado == 'EN_USO' ? 'bg-warning text-dark' : (alq.estado == 'DEVUELTO' ? 'bg-success' : 'bg-secondary'))}"
+                                      style="font-size: 0.6875rem;"
+                                      th:text="${alq.estado}">
+                                    RESERVADO
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a th:href="@{'/admin/contrato-alquiler/' + ${alq.idAlquiler} + '/docx'}" class="btn-retro-secondary btn-sm" style="font-size: 0.72rem; padding: 3px 6px;" title="Descargar Contrato Word">
+                                    <i class="bi bi-file-earmark-word text-info"></i> DOCX
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

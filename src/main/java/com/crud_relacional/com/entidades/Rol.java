@@ -44,4 +44,13 @@ public class Rol implements Serializable {
     public void setNombre_rol(String nombre_rol) {
         this.nombre_rol = nombre_rol;
     }
+
+    // Alias camelCase para compatibilidad SpEL / Thymeleaf (sessionScope.usuario.rol.nombreRol)
+    public String getNombreRol() {
+        return nombre_rol;
+    }
+
+    public void setNombreRol(String nombreRol) {
+        this.nombre_rol = nombreRol;
+    }
 }

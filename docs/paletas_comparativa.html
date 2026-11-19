@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería de Paletas Analógicas y Contrapartes Claras — RetroTunes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            padding: 30px 20px;
+        }
+        .palette-card {
+            background-color: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .palette-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .theme-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .color-sample {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .preview-img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .preview-img:hover {
+            transform: scale(1.02);
+        }
+        .btn-live {
+            background-color: #38bdf8;
+            color: #070913;
+            font-weight: 600;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .btn-live:hover {
+            background-color: #7dd3fc;
+            color: #070913;
+        }
+        .badge-mode {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.04em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 1380px;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom border-secondary border-opacity-25 gap-3">
+            <div>
+                <h1 class="h3 fw-semibold mb-1">Galería de Paletas Analógicas: Oscuras y Contrapartes Claras</h1>
+                <p class="text-secondary small mb-0">Unslop integral de textos, alto contraste WCAG AA (> 4.5:1) y 6 temas activos — RetroTunes</p>
+            </div>
+            <div>
+                <a href="http://localhost:8097" target="_blank" class="btn-live">
+                    Probar Selector Dinámico en Vivo (localhost:8097)
+                </a>
+            </div>
+        </div>
+
+        <!-- SECCION 1: COBALT & RETRO TAPE -->
+        <div class="mb-5">
+            <h2 class="h5 fw-semibold text-info mb-3 d-flex align-items-center gap-2">
+                <span>📼 Familia 1: Cobalt & Retro Tape</span>
+                <span class="badge bg-info text-dark" style="font-size: 0.7rem;">Tema Seleccionado</span>
+            </h2>
+            <div class="row g-4">
+                <!-- Cobalt Dark -->
+                <div class="col-md-6">
+                    <div class="palette-card">
+                        <div class="palette-header d-flex justify-content-between align-items-center" style="background: rgba(56, 189, 248, 0.1);">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="theme-dot" style="background: #38bdf8;"></span>
+                                <h3 class="h6 mb-0 text-light fw-semibold">Cobalt & Retro Tape (Oscuro)</h3>
+                            </div>
+                            <span class="badge-mode bg-dark text-info border border-info">MODO OSCURO</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="color-sample" style="background: #0b0f19; color: #f8fafc; border: 1px solid rgba(224, 231, 255, 0.15);">
+                                <span>Lienzo / Fondo</span><span>#0b0f19</span>
+                            </div>
+                            <div class="color-sample" style="background: #111726; color: #f8fafc; border: 1px solid rgba(224, 231, 255, 0.15);">
+                                <span>Tarjetas / Superficie</span><span>#111726</span>
+                            </div>
+                            <div class="color-sample" style="background: #38bdf8; color: #070913;">
+                                <span>Acento Cian Eléctrico</span><span>#38bdf8</span>
+                            </div>
+                            <div class="color-sample" style="background: #f8fafc; color: #0b0f19;">
+                                <span>Texto Primario (Contraste 15.2:1)</span><span>#f8fafc</span>
+                            </div>
+                            <div class="color-sample" style="background: #cbd5e1; color: #0b0f19;">
+                                <span>Texto Secundario (Contraste 9.8:1)</span><span>#cbd5e1</span>
+                            </div>
+
+                            <hr class="border-secondary border-opacity-25 my-3">
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Landing Page</h4>
+                            <a href="screenshots/landing_cobalt_dark.png" target="_blank">
+                                <img src="screenshots/landing_cobalt_dark.png" class="preview-img" alt="Landing Cobalt Dark">
+                            </a>
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Catálogo</h4>
+                            <a href="screenshots/catalogo_cobalt_dark.png" target="_blank">
+                                <img src="screenshots/catalogo_cobalt_dark.png" class="preview-img" alt="Catálogo Cobalt Dark">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cobalt Light -->
+                <div class="col-md-6">
+                    <div class="palette-card">
+                        <div class="palette-header d-flex justify-content-between align-items-center" style="background: rgba(2, 132, 199, 0.1);">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="theme-dot" style="background: #0284c7;"></span>
+                                <h3 class="h6 mb-0 text-light fw-semibold">Cobalt & Retro Tape (Claro)</h3>
+                            </div>
+                            <span class="badge-mode bg-light text-dark border border-secondary">CONTRAPARTE CLARA</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="color-sample" style="background: #f1f5f9; color: #0f172a; border: 1px solid rgba(15, 23, 42, 0.15);">
+                                <span>Lienzo / Fondo</span><span>#f1f5f9</span>
+                            </div>
+                            <div class="color-sample" style="background: #ffffff; color: #0f172a; border: 1px solid rgba(15, 23, 42, 0.15);">
+                                <span>Tarjetas / Superficie</span><span>#ffffff</span>
+                            </div>
+                            <div class="color-sample" style="background: #0284c7; color: #ffffff;">
+                                <span>Acento Cobalto Puro</span><span>#0284c7</span>
+                            </div>
+                            <div class="color-sample" style="background: #0f172a; color: #ffffff;">
+                                <span>Texto Primario (Contraste 16.1:1)</span><span>#0f172a</span>
+                            </div>
+                            <div class="color-sample" style="background: #334155; color: #ffffff;">
+                                <span>Texto Secundario (Contraste 9.6:1)</span><span>#334155</span>
+                            </div>
+
+                            <hr class="border-secondary border-opacity-25 my-3">
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Landing Page</h4>
+                            <a href="screenshots/landing_cobalt_light.png" target="_blank">
+                                <img src="screenshots/landing_cobalt_light.png" class="preview-img" alt="Landing Cobalt Light">
+                            </a>
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Catálogo</h4>
+                            <a href="screenshots/catalogo_cobalt_light.png" target="_blank">
+                                <img src="screenshots/catalogo_cobalt_light.png" class="preview-img" alt="Catálogo Cobalt Light">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCION 2: WARM VINYL & AMBER -->
+        <div class="mb-5">
+            <h2 class="h5 fw-semibold text-warning mb-3 d-flex align-items-center gap-2">
+                <span>🎷 Familia 2: Warm Vinyl & Amber</span>
+            </h2>
+            <div class="row g-4">
+                <!-- Warm Dark -->
+                <div class="col-md-6">
+                    <div class="palette-card">
+                        <div class="palette-header d-flex justify-content-between align-items-center" style="background: rgba(245, 158, 11, 0.1);">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="theme-dot" style="background: #f59e0b;"></span>
+                                <h3 class="h6 mb-0 text-light fw-semibold">Warm Vinyl & Amber (Oscuro)</h3>
+                            </div>
+                            <span class="badge-mode bg-dark text-warning border border-warning">MODO OSCURO</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="color-sample" style="background: #161513; color: #fdfbf7; border: 1px solid rgba(239, 233, 222, 0.15);">
+                                <span>Lienzo / Fondo</span><span>#161513</span>
+                            </div>
+                            <div class="color-sample" style="background: #1c1a18; color: #fdfbf7; border: 1px solid rgba(239, 233, 222, 0.15);">
+                                <span>Tarjetas / Madera</span><span>#1c1a18</span>
+                            </div>
+                            <div class="color-sample" style="background: #f59e0b; color: #12110f;">
+                                <span>Acento Ámbar Valvular</span><span>#f59e0b</span>
+                            </div>
+                            <div class="color-sample" style="background: #fdfbf7; color: #161513;">
+                                <span>Texto Marfil (Contraste 14.5:1)</span><span>#fdfbf7</span>
+                            </div>
+                            <div class="color-sample" style="background: #d6cfc4; color: #161513;">
+                                <span>Texto Secundario (Contraste 9.1:1)</span><span>#d6cfc4</span>
+                            </div>
+
+                            <hr class="border-secondary border-opacity-25 my-3">
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Landing Page</h4>
+                            <a href="screenshots/landing_warm_dark.png" target="_blank">
+                                <img src="screenshots/landing_warm_dark.png" class="preview-img" alt="Landing Warm Dark">
+                            </a>
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Catálogo</h4>
+                            <a href="screenshots/catalogo_warm_dark.png" target="_blank">
+                                <img src="screenshots/catalogo_warm_dark.png" class="preview-img" alt="Catálogo Warm Dark">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Warm Light -->
+                <div class="col-md-6">
+                    <div class="palette-card">
+                        <div class="palette-header d-flex justify-content-between align-items-center" style="background: rgba(194, 65, 12, 0.1);">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="theme-dot" style="background: #c2410c;"></span>
+                                <h3 class="h6 mb-0 text-light fw-semibold">Warm Vinyl & Amber (Claro)</h3>
+                            </div>
+                            <span class="badge-mode bg-light text-dark border border-secondary">CONTRAPARTE CLARA</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="color-sample" style="background: #f7f4ee; color: #1c1917; border: 1px solid rgba(28, 25, 23, 0.15);">
+                                <span>Lienzo Papel Acústico</span><span>#f7f4ee</span>
+                            </div>
+                            <div class="color-sample" style="background: #fdfbf7; color: #1c1917; border: 1px solid rgba(28, 25, 23, 0.15);">
+                                <span>Tarjetas Marfil Claro</span><span>#fdfbf7</span>
+                            </div>
+                            <div class="color-sample" style="background: #c2410c; color: #ffffff;">
+                                <span>Acento Ámbar Óxido</span><span>#c2410c</span>
+                            </div>
+                            <div class="color-sample" style="background: #1c1917; color: #ffffff;">
+                                <span>Texto Primario (Contraste 15.6:1)</span><span>#1c1917</span>
+                            </div>
+                            <div class="color-sample" style="background: #44403c; color: #ffffff;">
+                                <span>Texto Secundario (Contraste 8.9:1)</span><span>#44403c</span>
+                            </div>
+
+                            <hr class="border-secondary border-opacity-25 my-3">
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Landing Page</h4>
+                            <a href="screenshots/landing_warm_light.png" target="_blank">
+                                <img src="screenshots/landing_warm_light.png" class="preview-img" alt="Landing Warm Light">
+                            </a>
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Catálogo</h4>
+                            <a href="screenshots/catalogo_warm_light.png" target="_blank">
+                                <img src="screenshots/catalogo_warm_light.png" class="preview-img" alt="Catálogo Warm Light">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCION 3: HI-FI STUDIO -->
+        <div class="mb-4">
+            <h2 class="h5 fw-semibold text-danger mb-3 d-flex align-items-center gap-2">
+                <span>🎚️ Familia 3: Hi-Fi Studio</span>
+            </h2>
+            <div class="row g-4">
+                <!-- Hi-Fi Dark -->
+                <div class="col-md-6">
+                    <div class="palette-card">
+                        <div class="palette-header d-flex justify-content-between align-items-center" style="background: rgba(255, 107, 43, 0.1);">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="theme-dot" style="background: #ff6b2b;"></span>
+                                <h3 class="h6 mb-0 text-light fw-semibold">Hi-Fi Studio (Oscuro)</h3>
+                            </div>
+                            <span class="badge-mode bg-dark text-danger border border-danger">MODO OSCURO</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="color-sample" style="background: #121214; color: #ffffff; border: 1px solid rgba(237, 237, 237, 0.15);">
+                                <span>Lienzo Chasis Anodizado</span><span>#121214</span>
+                            </div>
+                            <div class="color-sample" style="background: #18181b; color: #ffffff; border: 1px solid rgba(237, 237, 237, 0.15);">
+                                <span>Tarjetas Rack Estudio</span><span>#18181b</span>
+                            </div>
+                            <div class="color-sample" style="background: #ff6b2b; color: #0d0d0f;">
+                                <span>Acento Vúmetro Analógico</span><span>#ff6b2b</span>
+                            </div>
+                            <div class="color-sample" style="background: #ffffff; color: #121214;">
+                                <span>Texto Primario (Contraste 15.9:1)</span><span>#ffffff</span>
+                            </div>
+                            <div class="color-sample" style="background: #d4d4d8; color: #121214;">
+                                <span>Texto Secundario (Contraste 10.2:1)</span><span>#d4d4d8</span>
+                            </div>
+
+                            <hr class="border-secondary border-opacity-25 my-3">
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Landing Page</h4>
+                            <a href="screenshots/landing_hifi_dark.png" target="_blank">
+                                <img src="screenshots/landing_hifi_dark.png" class="preview-img" alt="Landing Hi-Fi Dark">
+                            </a>
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Catálogo</h4>
+                            <a href="screenshots/catalogo_hifi_dark.png" target="_blank">
+                                <img src="screenshots/catalogo_hifi_dark.png" class="preview-img" alt="Catálogo Hi-Fi Dark">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hi-Fi Light -->
+                <div class="col-md-6">
+                    <div class="palette-card">
+                        <div class="palette-header d-flex justify-content-between align-items-center" style="background: rgba(234, 88, 12, 0.1);">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="theme-dot" style="background: #ea580c;"></span>
+                                <h3 class="h6 mb-0 text-light fw-semibold">Hi-Fi Studio (Claro)</h3>
+                            </div>
+                            <span class="badge-mode bg-light text-dark border border-secondary">CONTRAPARTE CLARA</span>
+                        </div>
+                        <div class="p-3">
+                            <div class="color-sample" style="background: #f4f4f5; color: #09090b; border: 1px solid rgba(9, 9, 11, 0.15);">
+                                <span>Lienzo Aluminio Claro</span><span>#f4f4f5</span>
+                            </div>
+                            <div class="color-sample" style="background: #ffffff; color: #09090b; border: 1px solid rgba(9, 9, 11, 0.15);">
+                                <span>Tarjetas Blancas Estudio</span><span>#ffffff</span>
+                            </div>
+                            <div class="color-sample" style="background: #ea580c; color: #ffffff;">
+                                <span>Acento Aguja Estudio</span><span>#ea580c</span>
+                            </div>
+                            <div class="color-sample" style="background: #09090b; color: #ffffff;">
+                                <span>Texto Primario (Contraste 18.2:1)</span><span>#09090b</span>
+                            </div>
+                            <div class="color-sample" style="background: #3f3f46; color: #ffffff;">
+                                <span>Texto Secundario (Contraste 8.8:1)</span><span>#3f3f46</span>
+                            </div>
+
+                            <hr class="border-secondary border-opacity-25 my-3">
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Landing Page</h4>
+                            <a href="screenshots/landing_hifi_light.png" target="_blank">
+                                <img src="screenshots/landing_hifi_light.png" class="preview-img" alt="Landing Hi-Fi Light">
+                            </a>
+                            <h4 class="small text-muted text-uppercase fw-semibold mb-2" style="font-size: 0.72rem;">Catálogo</h4>
+                            <a href="screenshots/catalogo_hifi_light.png" target="_blank">
+                                <img src="screenshots/catalogo_hifi_light.png" class="preview-img" alt="Catálogo Hi-Fi Light">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

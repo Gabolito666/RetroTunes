@@ -1,5 +1,6 @@
 package com.example.app;
 
+import com.crud_relacional.com.controlador.SpotifyClientHelper;
 import com.crud_relacional.com.entidades.ProductoMusica;
 import com.crud_relacional.com.entidades.Rol;
 import com.crud_relacional.com.entidades.Usuario;
@@ -12,8 +13,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -23,97 +26,130 @@ public class DataInitializer implements CommandLineRunner {
     private final RolRepository rolRepository;
     private final UsuarioRepository usuarioRepository;
     private final ProductoMusicaRepository productoMusicaRepository;
+    private final SpotifyClientHelper spotifyClientHelper;
 
     public DataInitializer(RolRepository rolRepository,
                            UsuarioRepository usuarioRepository,
-                           ProductoMusicaRepository productoMusicaRepository) {
+                           ProductoMusicaRepository productoMusicaRepository,
+                           SpotifyClientHelper spotifyClientHelper) {
         this.rolRepository = rolRepository;
         this.usuarioRepository = usuarioRepository;
         this.productoMusicaRepository = productoMusicaRepository;
+        this.spotifyClientHelper = spotifyClientHelper;
     }
 
     @Override
     public void run(String... args) {
         try {
-            if (rolRepository.count() == 0) {
-                log.info("Inicializando datos semilla en la base de datos (Supabase PostgreSQL)...");
+            inicializarRolesYAdmin();
+            sincronizarCatalogoCorregido();
+        } catch (Exception e) {
+            log.warn("Aviso en inicialización de datos: {}", e.getMessage(), e);
+        }
+    }
 
-                // 1. Inserción de los 5 Roles del sistema
-                Rol rolAdmin = new Rol("ADMIN");
-                Rol rolCliente = new Rol("CLIENTE");
-                Rol rolArtista = new Rol("ARTISTA");
-                Rol rolDiscografica = new Rol("DISCOGRAFICA");
-                Rol rolTecnico = new Rol("TECNICO_OPERACIONES");
+    private void inicializarRolesYAdmin() {
+        if (rolRepository.count() == 0) {
+            log.info("Inicializando roles del sistema en Supabase PostgreSQL...");
+            rolRepository.saveAll(Arrays.asList(
+                    new Rol("ADMIN"),
+                    new Rol("CLIENTE"),
+                    new Rol("ARTISTA"),
+                    new Rol("DISCOGRAFICA"),
+                    new Rol("TECNICO_OPERACIONES")
+            ));
+        }
 
-                List<Rol> rolesGuardados = rolRepository.saveAll(Arrays.asList(
-                        rolAdmin, rolCliente, rolArtista, rolDiscografica, rolTecnico
-                ));
-                log.info("Se han registrado {} roles exitosamente.", rolesGuardados.size());
+        if (!usuarioRepository.existsByCorreo("admin@retrotunes.com")) {
+            Rol rolAdmin = rolRepository.findByNombre_rol("ADMIN")
+                    .orElseGet(() -> rolRepository.save(new Rol("ADMIN")));
 
-                // 2. Creación de Usuario Administrador por defecto
-                if (!usuarioRepository.existsByCorreo("admin@retrotunes.com")) {
-                    Usuario admin = new Usuario();
-                    admin.setNombre_completo("Administrador RetroTunes");
-                    admin.setCorreo("admin@retrotunes.com");
-                    admin.setClave_usuario("admin123");
-                    admin.setTelefono("+57 300 000 0000");
-                    admin.setActivo(true);
-                    admin.setRol(rolAdmin);
+            Usuario admin = new Usuario();
+            admin.setNombre_completo("Administrador RetroTunes");
+            admin.setCorreo("admin@retrotunes.com");
+            admin.setClave_usuario("admin123");
+            admin.setTelefono("+57 300 000 0000");
+            admin.setActivo(true);
+            admin.setRol(rolAdmin);
 
-                    usuarioRepository.save(admin);
-                    log.info("Usuario Administrador semilla creado: admin@retrotunes.com");
-                }
+            usuarioRepository.save(admin);
+            log.info("Usuario Administrador semilla verificado: admin@retrotunes.com");
+        }
+    }
 
-                // 3. Registro de al menos 4 productos semilla (Vinilo, Cassette, CD, Equipo de Sonido)
-                if (productoMusicaRepository.count() == 0) {
-                    ProductoMusica vinilo = new ProductoMusica(
-                            "VIN-ABBEY-001",
+    private void sincronizarCatalogoCorregido() {
+        // 1. Si la base de datos está completamente vacía (por ejemplo en entorno de pruebas H2 en memoria),
+        // insertar los 4 productos semilla requeridos por el sistema y las pruebas unitarias.
+        if (productoMusicaRepository.count() == 0) {
+            log.info("Base de datos sin productos detectada. Inicializando los 4 productos semilla base...");
+            List<ProductoMusica> semillas = List.of(
+                    new ProductoMusica(
+                            "VIN-0001",
                             "The Beatles - Abbey Road (Edición Especial 180g)",
                             "VINILO",
                             new BigDecimal("39.99"),
                             new BigDecimal("4.50"),
                             15,
                             "0ETFjACtuP2ADo6LFhL6HN"
-                    );
-
-                    ProductoMusica cassette = new ProductoMusica(
-                            "CAS-THRILLER-002",
+                    ),
+                    new ProductoMusica(
+                            "CAS-0001",
                             "Michael Jackson - Thriller (Cassette Vintage Remastered)",
                             "CASSETTE",
                             new BigDecimal("19.50"),
                             new BigDecimal("2.50"),
                             10,
                             "2ANVost0y2y52ema1E9xAZ"
-                    );
-
-                    ProductoMusica cd = new ProductoMusica(
-                            "CD-DARK-003",
+                    ),
+                    new ProductoMusica(
+                            "CD-0001",
                             "Pink Floyd - The Dark Side of the Moon (Deluxe CD)",
                             "CD",
                             new BigDecimal("15.90"),
                             new BigDecimal("1.75"),
                             25,
-                            "4LH4d3cOWNNXdJwFd4G1kc"
-                    );
-
-                    ProductoMusica equipoSonido = new ProductoMusica(
-                            "EQ-CROSLEY-004",
+                            "4LH4d3cOWNNsVw41Gqt2kv"
+                    ),
+                    new ProductoMusica(
+                            "EQP-0001",
                             "Tornamesa Portátil Retro Cruiser Deluxe Bluetooth",
                             "EQUIPO_SONIDO",
                             new BigDecimal("129.99"),
                             new BigDecimal("15.00"),
                             6,
                             null
-                    );
+                    )
+            );
+            productoMusicaRepository.saveAll(semillas);
+            log.info("4 productos semilla base registrados con éxito en base de datos vacía.");
+            return;
+        }
 
-                    productoMusicaRepository.saveAll(Arrays.asList(vinilo, cassette, cd, equipoSonido));
-                    log.info("4 productos semilla registrados con éxito para verificación en catálogo.");
+        // 2. Si la base de datos ya contiene catálogo (ej. Supabase PostgreSQL en producción),
+        // proteger estrictamente la información y modificaciones de los usuarios.
+        // Solo sanitizar URLs de stock (Unsplash) y URLs completas de Spotify sin alterar álbumes ni títulos.
+        log.info("Base de datos ya contiene {} productos. Protegiendo datos de inventario sin sobrescrituras.", productoMusicaRepository.count());
+        try {
+            List<ProductoMusica> existentesEnDb = productoMusicaRepository.findAll();
+            for (ProductoMusica p : existentesEnDb) {
+                boolean modificado = false;
+                if (p.getImagen_url() != null && p.getImagen_url().contains("unsplash")) {
+                    p.setImagen_url(null);
+                    modificado = true;
                 }
-            } else {
-                log.info("La base de datos ya contiene roles registrados. Omitiendo DataInitializer.");
+                if (p.getSpotify_album_id() != null && !p.getSpotify_album_id().isBlank()) {
+                    String cleanId = SpotifyClientHelper.sanitizarAlbumId(p.getSpotify_album_id());
+                    if (cleanId != null && !cleanId.equals(p.getSpotify_album_id())) {
+                        p.setSpotify_album_id(cleanId);
+                        modificado = true;
+                    }
+                }
+                if (modificado) {
+                    productoMusicaRepository.save(p);
+                }
             }
         } catch (Exception e) {
-            log.warn("Aviso en inicialización de datos: {}", e.getMessage());
+            log.warn("Aviso al sanitizar registros de base de datos: {}", e.getMessage());
         }
     }
 }

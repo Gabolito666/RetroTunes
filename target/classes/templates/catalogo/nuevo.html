@@ -17,14 +17,23 @@
                     </a>
                 </div>
 
-                <form th:action="@{/catalogo/nuevo}" th:object="${producto}" method="post">
+                <form th:action="@{/catalogo/nuevo}" th:object="${producto}" method="post" enctype="multipart/form-data">
+                    <!-- Resumen Global de Errores -->
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger py-2 mb-3" style="background: #2d1515; border-color: #5c2020; color: #fca5a5;">
+                        <div class="fw-medium mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Por favor revisa los siguientes campos:</div>
+                        <ul class="mb-0 ps-3 small">
+                            <li th:each="err : ${#fields.allErrors()}" th:text="${err}">Error</li>
+                        </ul>
+                    </div>
+                    <div th:if="${mensajeError}" class="alert alert-danger py-2 mb-3" style="background: #2d1515; border-color: #5c2020; color: #fca5a5;" th:text="${mensajeError}"></div>
+
                     <div class="row g-3">
-                        <!-- SKU -->
+                        <!-- SKU Autogenerado u Opcional -->
                         <div class="col-md-6">
-                            <label for="sku" class="form-label-retro">Código SKU</label>
-                            <input type="text" id="sku" th:field="*{sku}" 
-                                   class="form-control form-control-retro meta-mono" th:errorclass="is-invalid" 
-                                   placeholder="VIN-ABBEY-001" required>
+                            <label for="sku" class="form-label-retro">Código SKU (Opcional - Autogenerado)</label>
+                            <input type="text" id="sku" th:field="*{sku}" class="form-control form-control-retro meta-mono" 
+                                   placeholder="Dejar en blanco para autogenerar (ej. VIN-8F3A)">
+                            <small class="meta-mono mt-1 d-block text-secondary">Si se deja vacío, el servidor genera automáticamente el código según el formato.</small>
                             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('sku')}" th:errors="*{sku}"></div>
                         </div>
 
@@ -46,7 +55,7 @@
                             <label for="titulo" class="form-label-retro">Título de la obra o dispositivo</label>
                             <input type="text" id="titulo" th:field="*{titulo}" 
                                    class="form-control form-control-retro" th:errorclass="is-invalid" 
-                                   placeholder="The Dark Side of the Moon — Pink Floyd" required>
+                                   placeholder="The Dark Side of the Moon — Pink Floyd o Tornamesa Cruiser Deluxe" required>
                             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}"></div>
                         </div>
 
@@ -86,16 +95,78 @@
                             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></div>
                         </div>
 
-                        <!-- Spotify Album ID -->
-                        <div class="col-12">
-                            <label for="spotify_album_id" class="form-label-retro">Identificador Spotify (Opcional)</label>
-                            <div class="input-group">
-                                <span class="input-group-text-retro"><i class="bi bi-spotify"></i></span>
-                                <input type="text" id="spotify_album_id" th:field="*{spotify_album_id}" 
-                                       class="form-control form-control-retro meta-mono" 
-                                       placeholder="0ETFjACtuP2ADo6LFhL6HN">
+                        <!-- SECCIÓN A: Equipos de Sonido (Fotografía de Objeto Físico) -->
+                        <div id="seccionEquipoSonido" class="col-12" style="display: none;">
+                            <div class="p-3 rounded" style="background: var(--surface-deep); border: 1px solid var(--border-hairline);">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label-retro mb-0 text-light fw-medium">
+                                        <i class="bi bi-camera-fill text-warning me-1"></i> Fotografía del Equipo de Sonido
+                                    </label>
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.72rem;">
+                                        <i class="bi bi-speaker me-1"></i> Dispositivo Físico
+                                    </span>
+                                </div>
+                                <p class="text-secondary small mb-3">
+                                    Los equipos de sonido son objetos físicos (tornamesas, amplificadores, altavoces). Sube una foto real del equipo para mostrarla en el catálogo.
+                                </p>
+
+                                <div class="mb-3">
+                                    <label for="imagenArchivo" class="form-label-retro small">Subir archivo de imagen desde tu dispositivo</label>
+                                    <input type="file" id="imagenArchivo" name="imagenArchivo" 
+                                           class="form-control form-control-retro" 
+                                           accept="image/png, image/jpeg, image/webp, image/gif">
+                                    <small class="meta-mono mt-1 d-block text-secondary">Formatos: JPG, PNG, WebP o GIF. La foto se guardará de forma persistente en el servidor.</small>
+                                </div>
+
+                                <div>
+                                    <label for="imagen_url_equipo" class="form-label-retro small">O bien, URL directa de la fotografía (Opcional)</label>
+                                    <input type="text" id="imagen_url_equipo" th:field="*{imagen_url}" 
+                                           class="form-control form-control-retro meta-mono" 
+                                           placeholder="https://ejemplo.com/fotos/tornamesa-retro.jpg o ruta local">
+                                    <small class="meta-mono mt-1 d-block text-secondary">Puedes dejarla vacía si subes un archivo en el campo anterior.</small>
+                                </div>
                             </div>
-                            <small class="meta-mono mt-1 d-block">Genera la vista previa interactiva en la tarjeta del catálogo.</small>
+                        </div>
+
+                        <!-- SECCIÓN B: Música Física (Spotify Album ID & Apple Music Animated Artwork) -->
+                        <div id="seccionMusicaSpotify" class="col-12">
+                            <!-- Spotify Album ID o Enlace (Artwork Automático desde Spotify API) -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="spotify_album_id" class="form-label-retro mb-0">Enlace o ID de Álbum de Spotify</label>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.72rem;">
+                                        <i class="bi bi-spotify me-1"></i> Portada extraída de Spotify API
+                                    </span>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text-retro"><i class="bi bi-spotify text-success"></i></span>
+                                    <input type="text" id="spotify_album_id" th:field="*{spotify_album_id}" 
+                                           class="form-control form-control-retro meta-mono" 
+                                           placeholder="https://open.spotify.com/album/4aawyAB9vmqN3uQ7FjRGTy o ID de 22 caracteres">
+                                </div>
+                                <small class="meta-mono mt-1 d-block text-secondary">
+                                    La portada oficial del álbum (Artwork) se extrae automáticamente desde la API oficial de Spotify.
+                                </small>
+                            </div>
+
+                            <!-- Opción de Animated Artwork desde Apple Music Artwork Finder -->
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="animatedArtworkUrl" class="form-label-retro mb-0">Animated Artwork (Apple Music Artwork Finder)</label>
+                                    <a href="https://bendodson.com/projects/apple-music-artwork-finder/" target="_blank" rel="noopener noreferrer" class="text-info small text-decoration-none">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> Abrir Apple Music Artwork Finder
+                                    </a>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text-retro"><i class="bi bi-film text-info"></i></span>
+                                    <input type="text" id="animatedArtworkUrl" th:field="*{animatedArtworkUrl}" 
+                                           class="form-control form-control-retro meta-mono" 
+                                           placeholder="https://...mp4 (Enlace de video .mp4 de Apple Music Artwork Finder)">
+                                </div>
+                                <small class="meta-mono mt-1 d-block text-secondary">
+                                    Opción para el administrador: Pega el enlace de video (.mp4) de la carátula animada para reproducirla en bucle continuo en el catálogo.
+                                </small>
+                            </div>
                         </div>
                     </div>
 
@@ -111,5 +182,25 @@
     </main>
 
     <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <script>
+        function toggleSeccionesFormato() {
+            const select = document.getElementById('formato');
+            const seccionMusica = document.getElementById('seccionMusicaSpotify');
+            const seccionEquipo = document.getElementById('seccionEquipoSonido');
+            if (!select || !seccionMusica || !seccionEquipo) return;
+
+            if (select.value === 'EQUIPO_SONIDO') {
+                seccionMusica.style.display = 'none';
+                seccionEquipo.style.display = 'block';
+            } else {
+                seccionMusica.style.display = 'block';
+                seccionEquipo.style.display = 'none';
+            }
+        }
+
+        document.getElementById('formato').addEventListener('change', toggleSeccionesFormato);
+        document.addEventListener('DOMContentLoaded', toggleSeccionesFormato);
+    </script>
 </body>
 </html>

@@ -33,9 +33,9 @@
             <div class="col-lg-8">
                 <div class="card-retro p-3">
                     <div class="table-responsive">
-                        <table class="table table-dark mb-0" style="background: transparent; font-size: 0.875rem;">
+                        <table class="table table-retro mb-0" style="background: transparent; font-size: 0.875rem;">
                             <thead>
-                                <tr style="border-bottom: 1px solid var(--border-hairline); color: #a1a1aa;">
+                                <tr style="border-bottom: 1px solid var(--border-hairline); color: var(--text-secondary);">
                                     <th>Pieza / Formato</th>
                                     <th class="text-center" style="width: 120px;">Cantidad</th>
                                     <th class="text-end" style="width: 100px;">Precio</th>
@@ -44,7 +44,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:each="item : ${items}" style="border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle;">
+                                <tr th:each="item : ${items}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
                                     <td>
                                         <div class="fw-medium text-light" th:text="${item.titulo}">Título del Álbum</div>
                                         <div class="d-flex gap-2 align-items-center mt-1">
@@ -53,13 +53,21 @@
                                         </div>
                                     </td>
                                     <td class="text-center">
-                                        <form th:action="@{/compras/carrito/actualizar}" method="post" class="d-inline-flex align-items-center gap-1">
-                                            <input type="hidden" name="idProducto" th:value="${item.idProducto}">
-                                            <input type="number" name="cantidad" th:value="${item.cantidad}" min="1" max="99" class="input-retro text-center py-1 px-1" style="width: 56px; font-size: 0.8125rem;">
-                                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Actualizar" style="padding: 2px 6px;">
-                                                <i class="bi bi-arrow-repeat"></i>
-                                            </button>
-                                        </form>
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <form th:action="@{/compras/carrito/decrementar}" method="post" class="d-inline m-0">
+                                                <input type="hidden" name="idProducto" th:value="${item.idProducto}">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Disminuir unidad" style="padding: 1px 7px; font-weight: bold; line-height: 1.2;">
+                                                    <i class="bi bi-dash"></i>
+                                                </button>
+                                            </form>
+                                            <span class="meta-mono px-2 fw-medium text-light" th:text="${item.cantidad}" style="min-width: 28px; text-align: center;">1</span>
+                                            <form th:action="@{/compras/carrito/incrementar}" method="post" class="d-inline m-0">
+                                                <input type="hidden" name="idProducto" th:value="${item.idProducto}">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Aumentar unidad" style="padding: 1px 7px; font-weight: bold; line-height: 1.2;">
+                                                    <i class="bi bi-plus"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                     <td class="text-end meta-mono text-secondary" th:text="'$' + ${#numbers.formatDecimal(item.precioUnitario, 1, 2)}">$0.00</td>
                                     <td class="text-end meta-mono fw-medium text-light" th:text="'$' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}">$0.00</td>
@@ -104,6 +112,37 @@
                     <span class="meta-mono text-muted text-center d-block" style="font-size: 0.75rem;">
                         Transacción segura • Stock reservado en Supabase
                     </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adición Directa al Carrito (Recomendados del Catálogo) -->
+        <div class="card-retro p-4 mt-4" th:if="${not #lists.isEmpty(sugeridos)}">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="h6 text-light fw-medium mb-1"><i class="bi bi-disc me-2 text-warning"></i>Adición directa al carrito</h2>
+                    <p class="text-secondary small mb-0">Agrega piezas físicas complementarias de alta fidelidad sin abandonar el carrito.</p>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-4" th:each="sug : ${sugeridos}">
+                    <div class="p-3 rounded h-100 d-flex flex-column" style="background: var(--surface-translucent); border: 1px solid var(--border-hairline);">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge-signature" style="font-size: 0.6875rem;" th:text="${sug.formato}">VINILO</span>
+                            <span class="price-display" style="font-size: 0.9375rem;" th:text="'$' + ${#numbers.formatDecimal(sug.precio_venta, 1, 2)}">$0.00</span>
+                        </div>
+                        <div class="fw-medium text-light text-truncate mb-2" th:text="${sug.titulo}">Título del Álbum</div>
+                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2" style="border-top: 1px solid var(--border-hairline);">
+                            <span class="meta-mono small text-secondary" th:text="${sug.stock} + ' disp.'">10 disp.</span>
+                            <form th:action="@{/compras/carrito/agregar}" method="post" class="d-inline m-0">
+                                <input type="hidden" name="idProducto" th:value="${sug.id_producto}">
+                                <input type="hidden" name="cantidad" value="1">
+                                <button type="submit" class="btn-retro-primary" style="padding: 4px 10px; font-size: 0.75rem;">
+                                    <i class="bi bi-cart-plus me-1"></i> Añadir
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

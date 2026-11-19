@@ -59,12 +59,28 @@ public class Usuario implements Serializable {
         this.id_usuario = id_usuario;
     }
 
+    public Long getIdUsuario() {
+        return id_usuario;
+    }
+
+    public void setIdUsuario(Long idUsuario) {
+        this.id_usuario = idUsuario;
+    }
+
     public String getNombre_completo() {
         return nombre_completo;
     }
 
     public void setNombre_completo(String nombre_completo) {
         this.nombre_completo = nombre_completo;
+    }
+
+    public String getNombreCompleto() {
+        return nombre_completo;
+    }
+
+    public void setNombreCompleto(String nombreCompleto) {
+        this.nombre_completo = nombreCompleto;
     }
 
     public String getCorreo() {
@@ -81,6 +97,14 @@ public class Usuario implements Serializable {
 
     public void setClave_usuario(String clave_usuario) {
         this.clave_usuario = clave_usuario;
+    }
+
+    public String getClaveUsuario() {
+        return clave_usuario;
+    }
+
+    public void setClaveUsuario(String claveUsuario) {
+        this.clave_usuario = claveUsuario;
     }
 
     public String getTelefono() {

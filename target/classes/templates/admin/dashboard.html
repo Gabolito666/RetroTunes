@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard Gerencial')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 1100px;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 gap-3" style="border-bottom: 1px solid var(--border-hairline);">
+            <div>
+                <h1 class="h3 text-light fw-medium mb-1">Panel de Control Gerencial</h1>
+                <p class="text-secondary small mb-0">Métricas analíticas en tiempo real de inventario, ventas y custodia de equipos.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/reportes/excel}" class="btn-retro-primary" style="font-size: 0.8125rem;">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel (.xlsx)
+                </a>
+                <a th:href="@{/admin/reportes}" class="btn-retro-secondary" style="font-size: 0.8125rem;">
+                    <i class="bi bi-file-earmark-text me-1"></i> Centro de Reportes
+                </a>
+            </div>
+        </div>
+
+        <!-- Fila de Tarjetas KPI -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 mb-4">
+            <div class="col">
+                <div class="card-retro p-3 h-100">
+                    <span class="text-secondary small d-block mb-1">Ingresos Totales</span>
+                    <span class="price-display fs-4 text-light" th:text="'$' + ${#numbers.formatDecimal(ingresosTotales, 1, 2)}">$0.00</span>
+                    <span class="meta-mono text-muted d-block mt-2" style="font-size: 0.72rem;">Ventas + Alquileres</span>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card-retro p-3 h-100">
+                    <span class="text-secondary small d-block mb-1">Ventas de Catálogo</span>
+                    <span class="price-display fs-4 text-success" th:text="'$' + ${#numbers.formatDecimal(totalVentas, 1, 2)}">$0.00</span>
+                    <span class="meta-mono text-muted d-block mt-2" style="font-size: 0.72rem;">Vinilos, Cintas y CDs</span>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card-retro p-3 h-100">
+                    <span class="text-secondary small d-block mb-1">Alquiler de Audio</span>
+                    <span class="price-rental fs-4" th:text="'$' + ${#numbers.formatDecimal(totalAlquileres, 1, 2)}">$0.00</span>
+                    <span class="meta-mono text-muted d-block mt-2" style="font-size: 0.72rem;" th:text="${alquileresActivos} + ' activos'">0 activos</span>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card-retro p-3 h-100">
+                    <span class="text-secondary small d-block mb-1">Garantías en Custodia</span>
+                    <span class="price-display fs-4 text-warning" th:text="'$' + ${#numbers.formatDecimal(depositosCustodia, 1, 2)}">$0.00</span>
+                    <span class="meta-mono text-muted d-block mt-2" style="font-size: 0.72rem;">30% Fianza de Equipos</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <!-- Ventas por Formato -->
+            <div class="col-lg-5">
+                <div class="card-retro p-4 h-100">
+                    <h2 class="h6 text-light fw-medium mb-3">Distribución por Formato Musical</h2>
+                    
+                    <div th:if="${#lists.isEmpty(ventasPorFormato)}" class="text-center py-4 text-muted small">
+                        Sin transacciones registradas aún.
+                    </div>
+
+                    <div th:if="${not #lists.isEmpty(ventasPorFormato)}" class="d-flex flex-column gap-3">
+                        <div th:each="row : ${ventasPorFormato}" class="p-2" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge-signature" th:text="${row[0]}">VINILO</span>
+                                <span class="meta-mono text-light fw-medium" th:text="${row[1]} + ' unidades'">0 un</span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-secondary">
+                                <span>Recaudación</span>
+                                <span class="meta-mono text-light" th:text="'$' + ${#numbers.formatDecimal(row[2], 1, 2)}">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen Operativo -->
+            <div class="col-lg-7">
+                <div class="card-retro p-4 h-100">
+                    <h2 class="h6 text-light fw-medium mb-3">Auditoría de Inventario y Usuarios</h2>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="p-3" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                                <span class="text-secondary small d-block">Títulos en Inventario</span>
+                                <span class="fs-4 text-light fw-medium meta-mono" th:text="${numProductos}">0</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                                <span class="text-secondary small d-block">Cuentas Registradas</span>
+                                <span class="fs-4 text-light fw-medium meta-mono" th:text="${numUsuarios}">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="h6 text-light fw-medium mb-2" style="font-size: 0.8125rem;">Flujos Rápidos de Operación</h3>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a th:href="@{/catalogo/nuevo}" class="btn-retro-secondary" style="font-size: 0.8125rem;">
+                            <i class="bi bi-plus-circle me-1"></i> Nuevo Producto
+                        </a>
+                        <a th:href="@{/operaciones/inspeccion}" class="btn-retro-secondary" style="font-size: 0.8125rem;">
+                            <i class="bi bi-tools me-1"></i> Inspeccionar Equipos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Últimas Ventas con Descarga de Factura PDF -->
+        <div class="card-retro p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h6 text-light fw-medium mb-0">Últimas Órdenes y Facturación</h2>
+                <span class="meta-mono text-muted small" th:text="${#lists.size(ultimasVentas)} + ' Órdenes'">0 Órdenes</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-retro table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th>Código Factura</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Método Pago</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-center" style="width: 130px;">Comprobante</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(ultimasVentas)}">
+                            <td colspan="6" class="text-center py-3 text-muted">No se registran órdenes de venta</td>
+                        </tr>
+                        <tr th:each="v : ${ultimasVentas}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
+                            <td>
+                                <span class="meta-mono text-light fw-medium" th:text="${v.codigo_factura}">FAC-000</span>
+                            </td>
+                            <td>
+                                <span class="text-light" th:text="${v.cliente.nombre_completo}">Cliente</span>
+                                <span class="meta-mono text-muted d-block" style="font-size: 0.72rem;" th:text="${v.cliente.correo}">correo</span>
+                            </td>
+                            <td class="meta-mono text-secondary small" th:text="${#temporals.format(v.fecha_hora, 'yyyy-MM-dd HH:mm')}">Fecha</td>
+                            <td>
+                                <span class="badge-signature" style="font-size: 0.7rem;" th:text="${v.metodo_pago}">TARJETA</span>
+                            </td>
+                            <td class="text-end meta-mono fw-medium text-light" th:text="'$' + ${#numbers.formatDecimal(v.monto_total, 1, 2)}">$0.00</td>
+                            <td class="text-center">
+                                <a th:href="@{'/compras/factura/' + ${v.codigo_factura} + '/pdf'}" class="btn-retro-secondary" style="font-size: 0.75rem; padding: 4px 8px;" title="Descargar Factura Oficial PDF">
+                                    <i class="bi bi-file-earmark-pdf text-danger me-1"></i> PDF
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

@@ -18,7 +18,7 @@
                 <div class="col-lg-7">
                     <div class="card-retro p-4 mb-4">
                         <h2 class="h6 text-light fw-medium mb-3">1. Datos del Comprador</h2>
-                        <div class="p-3 mb-3" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                        <div class="p-3 mb-3" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
                             <div class="mb-2">
                                 <span class="text-muted small d-block">Nombre completo:</span>
                                 <span class="text-light fw-medium" th:text="${usuario.nombre_completo}">Nombre</span>
@@ -38,7 +38,7 @@
                         <h2 class="h6 text-light fw-medium mb-3">2. Método de Pago</h2>
 
                         <div class="d-flex flex-column gap-2 mb-3">
-                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
                                 <input type="radio" name="metodoPago" value="TARJETA_CREDITO" checked class="form-check-input mt-0">
                                 <div class="flex-grow-1">
                                     <span class="text-light fw-medium d-block">Tarjeta de Crédito / Débito</span>
@@ -47,7 +47,7 @@
                                 <i class="bi bi-credit-card text-secondary fs-5"></i>
                             </label>
 
-                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
                                 <input type="radio" name="metodoPago" value="PSE" class="form-check-input mt-0">
                                 <div class="flex-grow-1">
                                     <span class="text-light fw-medium d-block">PSE - Pagos Seguros en Línea</span>
@@ -56,7 +56,7 @@
                                 <i class="bi bi-bank text-secondary fs-5"></i>
                             </label>
 
-                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
                                 <input type="radio" name="metodoPago" value="TRANSFERENCIA_BANCARIA" class="form-check-input mt-0">
                                 <div class="flex-grow-1">
                                     <span class="text-light fw-medium d-block">Transferencia Bancaria</span>
@@ -65,7 +65,7 @@
                                 <i class="bi bi-qr-code text-secondary fs-5"></i>
                             </label>
 
-                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
                                 <input type="radio" name="metodoPago" value="EFECTIVO_CONTRAENTREGA" class="form-check-input mt-0">
                                 <div class="flex-grow-1">
                                     <span class="text-light fw-medium d-block">Efectivo contraentrega</span>

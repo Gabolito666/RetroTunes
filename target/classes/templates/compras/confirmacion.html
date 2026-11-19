@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Confirmación de Factura')}"></head>
+<body>
+    <div class="d-print-none" th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 860px;">
+        <!-- Banner de Éxito No Imprimible -->
+        <div class="d-print-none mb-4">
+            <div class="p-4 rounded-3 text-center mb-3" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 78, 59, 0.25) 100%); border: 1px solid rgba(16, 185, 129, 0.3);">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style="width: 52px; height: 52px; background: rgba(16, 185, 129, 0.2);">
+                    <i class="bi bi-check2-circle text-success fs-2"></i>
+                </div>
+                <h1 class="h4 text-light fw-medium mb-1">¡Compra Procesada y Factura Generada!</h1>
+                <p class="text-secondary small mb-3">La transacción ha sido registrada exitosamente en nuestra base de datos institucional.</p>
+
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a th:href="@{'/compras/factura/pdf/' + ${venta.id_venta}}" target="_blank" class="btn-retro-primary">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Descargar Factura PDF
+                    </a>
+                    <button type="button" onclick="window.print()" class="btn-retro-secondary">
+                        <i class="bi bi-printer me-1"></i> Imprimir Comprobante
+                    </button>
+                    <a th:href="@{/compras/historial}" class="btn-retro-secondary">
+                        <i class="bi bi-clock-history me-1"></i> Mis Compras
+                    </a>
+                    <a th:href="@{/catalogo}" class="btn-retro-ghost">
+                        <i class="bi bi-collection me-1"></i> Volver al Catálogo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta Oficial de Factura (Estructura imprimible y en pantalla) -->
+        <div class="card-retro p-4 p-md-5 invoice-printable shadow-sm" id="factura-content">
+            <!-- Encabezado Institucional -->
+            <div class="row align-items-start border-bottom pb-4 mb-4" style="border-color: var(--border-hairline) !important;">
+                <div class="col-sm-7">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="brand-icon fs-3"><i class="bi bi-disc text-info"></i></span>
+                        <span class="fs-4 fw-bold text-light tracking-wide">RETROTUNES</span>
+                    </div>
+                    <p class="text-secondary small mb-1"><strong>NIT:</strong> 900.876.543-1 • Bucaramanga, Santander, Colombia</p>
+                    <p class="text-secondary small mb-1">Carrera 27 # 36-14, Bucaramanga</p>
+                    <p class="text-muted small mb-0">Contacto: facturacion@retrotunes.com • PBX: (607) 634-9800</p>
+                </div>
+                <div class="col-sm-5 text-sm-end mt-3 mt-sm-0">
+                    <span class="badge bg-dark border border-secondary text-light px-3 py-2 mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                        FACTURA ELECTRÓNICA DE VENTA
+                    </span>
+                    <h2 class="h5 meta-mono text-light fw-bold mb-1" th:text="${venta.codigo_factura}">FAC-RETRO-000</h2>
+                    <p class="text-secondary small mb-1">
+                        <strong>Fecha:</strong> <span th:text="${#temporals.format(venta.fecha_hora, 'dd/MM/yyyy HH:mm:ss')}">01/01/2026 00:00</span>
+                    </p>
+                    <p class="text-secondary small mb-0">
+                        <strong>Método:</strong> <span class="badge bg-secondary" th:text="${venta.metodo_pago}">TARJETA</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Datos del Cliente y Operación -->
+            <div class="row g-3 mb-4 p-3 rounded" style="background: var(--surface-raised); border: 1px solid var(--border-hairline);">
+                <div class="col-md-6">
+                    <span class="text-muted small d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">CLIENTE / ADQUIRENTE</span>
+                    <span class="text-light fw-medium d-block" th:text="${venta.cliente != null ? venta.cliente.nombre_completo : 'Cliente General'}">Nombre Cliente</span>
+                    <span class="text-secondary small meta-mono d-block" th:text="${venta.cliente != null ? venta.cliente.correo : 'correo@ejemplo.com'}">correo@ejemplo.com</span>
+                    <span class="text-secondary small d-block" th:text="'Teléfono: ' + ${venta.cliente != null && venta.cliente.telefono != null ? venta.cliente.telefono : 'No registrado'}">Tel: N/A</span>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <span class="text-muted small d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">RESOLUCIÓN DE FACTURACIÓN</span>
+                    <span class="text-secondary small d-block">Habilitación DIAN No. 18764000001</span>
+                    <span class="text-secondary small d-block">Modalidad: Factura en Línea Supabase Cloud</span>
+                    <span class="text-success small fw-medium"><i class="bi bi-shield-check me-1"></i> Estado: Pagada y Verificada</span>
+                </div>
+            </div>
+
+            <!-- Tabla de Ítems / Productos -->
+            <div class="table-responsive mb-4">
+                <table class="table table-retro align-middle mb-0" style="font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th style="width: 15%;">SKU</th>
+                            <th style="width: 40%;">Título / Artículo</th>
+                            <th style="width: 15%;" class="text-center">Formato</th>
+                            <th style="width: 10%;" class="text-center">Cant.</th>
+                            <th style="width: 10%;" class="text-end">Precio Unit.</th>
+                            <th style="width: 10%;" class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="det : ${detalles}" style="border-bottom: 1px solid var(--border-hairline);">
+                            <td class="meta-mono text-muted" th:text="${det.producto != null ? det.producto.sku : 'SKU-N/A'}">SKU-001</td>
+                            <td>
+                                <span class="text-light fw-medium d-block" th:text="${det.producto != null ? det.producto.titulo : 'Producto'}">Título del Ítem</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-dark border border-secondary" th:text="${det.producto != null ? det.producto.formato : 'Estándar'}">VINILO</span>
+                            </td>
+                            <td class="text-center meta-mono text-light" th:text="${det.cantidad}">1</td>
+                            <td class="text-end meta-mono text-secondary" th:text="'$' + ${#numbers.formatDecimal(det.precio_unitario, 1, 2)}">$0.00</td>
+                            <td class="text-end meta-mono text-light fw-medium" th:text="'$' + ${#numbers.formatDecimal(det.subtotal, 1, 2)}">$0.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Desglose de Impuestos y Total -->
+            <div class="row justify-content-end mb-4">
+                <div class="col-md-5">
+                    <div class="p-3 rounded" style="background: var(--surface-raised); border: 1px solid var(--border-hairline);">
+                        <div class="d-flex justify-content-between text-secondary small py-1">
+                            <span>Subtotal Base (sin IVA):</span>
+                            <span class="meta-mono" th:text="'$' + ${#numbers.formatDecimal(subtotalBase, 1, 2)}">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-secondary small py-1">
+                            <span>IVA Discriminado (19%):</span>
+                            <span class="meta-mono" th:text="'$' + ${#numbers.formatDecimal(iva, 1, 2)}">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 mt-2 border-top" style="border-color: var(--border-hairline) !important;">
+                            <span class="fw-bold text-light">Monto Total Pagado:</span>
+                            <span class="price-display fs-4 text-light" th:text="'$' + ${#numbers.formatDecimal(total, 1, 2)}">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nota Legal de Factura -->
+            <div class="text-center pt-3 border-top" style="border-color: var(--border-hairline) !important;">
+                <p class="text-muted small mb-1" style="font-size: 0.75rem;">
+                    Esta factura constituye título valor en los términos de la legislación colombiana (Ley 1231 de 2008 y normas concordantes).
+                </p>
+                <small class="meta-mono text-muted" style="font-size: 0.7rem;">
+                    RetroTunes • Tienda & Archivo de Preservación de Audio Analógico • Bucaramanga, Colombia
+                </small>
+            </div>
+        </div>
+    </main>
+
+    <div class="d-print-none" th:replace="~{fragments/layout :: footer}"></div>
+
+    <style>
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+            .invoice-printable {
+                background: #ffffff !important;
+                color: #000000 !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            .invoice-printable * {
+                color: #000000 !important;
+            }
+            .table-retro th, .table-retro td {
+                border-color: #e5e7eb !important;
+                color: #000000 !important;
+            }
+            .badge {
+                border: 1px solid #000 !important;
+                color: #000 !important;
+                background: transparent !important;
+            }
+        }
+    </style>
+</body>
+</html>

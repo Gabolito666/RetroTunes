@@ -5,12 +5,23 @@
     <div th:replace="~{fragments/layout :: navbar}"></div>
 
     <main class="container py-4" style="max-width: 1100px;">
-        <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb mb-0" style="font-size: 0.875rem;">
-                <li class="breadcrumb-item"><a th:href="@{/catalogo}" class="text-secondary text-decoration-none">Catálogo</a></li>
-                <li class="breadcrumb-item active text-muted" aria-current="page" th:text="${producto.titulo}">Detalle</li>
-            </ol>
-        </nav>
+        <!-- Barra de Navegación y Retorno Contextual según Formato -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0" style="font-size: 0.875rem;">
+                    <li class="breadcrumb-item">
+                        <a th:href="${formatoOrigen != null and formatoOrigen != 'TODOS'} ? @{/catalogo(formato=${formatoOrigen})} : @{/catalogo}" class="text-secondary text-decoration-none">Catálogo</a>
+                    </li>
+                    <li th:if="${formatoOrigen != null and formatoOrigen != 'TODOS'}" class="breadcrumb-item">
+                        <a th:href="@{/catalogo(formato=${formatoOrigen})}" class="text-secondary text-decoration-none" th:text="${formatoOrigen}">FORMATO</a>
+                    </li>
+                    <li class="breadcrumb-item active text-muted" aria-current="page" th:text="${producto.titulo}">Detalle</li>
+                </ol>
+            </nav>
+            <a th:href="${formatoOrigen != null and formatoOrigen != 'TODOS'} ? @{/catalogo(formato=${formatoOrigen})} : @{/catalogo}" class="btn-retro-secondary" style="font-size: 0.8125rem;">
+                <i class="bi bi-arrow-left me-1"></i> Volver al Catálogo
+            </a>
+        </div>
 
         <div th:if="${errorStock}" class="alert alert-danger py-2 mb-4" style="background: #2d1515; border-color: #5c2020; color: #fca5a5; font-size: 0.875rem;" th:text="${errorStock}"></div>
         <div th:if="${mensajeExito}" class="alert alert-success py-2 mb-4" style="background: #142918; border-color: #1f4d27; color: #86efac; font-size: 0.875rem;" th:text="${mensajeExito}"></div>
@@ -20,16 +31,31 @@
             <div class="col-lg-5">
                 <div class="card-retro p-4 text-center">
                     <div class="mb-3 position-relative overflow-hidden" style="border-radius: var(--radius-card); background: #1c1c1f;">
-                        <img th:if="${albumSpotify.imagenUrl != null}" th:src="${albumSpotify.imagenUrl}" alt="Portada" class="img-fluid" style="width: 100%; aspect-ratio: 1/1; object-fit: cover;">
-                        <div th:if="${albumSpotify.imagenUrl == null}" class="d-flex align-items-center justify-content-center text-secondary" style="height: 320px;">
-                            <i class="bi bi-disc" style="font-size: 5rem;"></i>
+                        <!-- Carátula Animada Apple Music (.mp4) -->
+                        <video th:if="${producto.animatedArtworkUrl != null and !#strings.isEmpty(producto.animatedArtworkUrl)}" 
+                               autoplay loop muted playsinline 
+                               class="animated-cover-media img-fluid w-100" 
+                               style="aspect-ratio: 1/1; object-fit: cover;">
+                            <source th:src="${producto.animatedArtworkUrl}" type="video/mp4">
+                        </video>
+                        <!-- Carátula Estática Oficial de Spotify si animatedArtworkUrl es nulo -->
+                        <div th:unless="${producto.animatedArtworkUrl != null and !#strings.isEmpty(producto.animatedArtworkUrl)}">
+                            <img th:if="${(spotifyCoverUrl != null and !#strings.isEmpty(spotifyCoverUrl) and !#strings.contains(spotifyCoverUrl, 'unsplash')) or (producto.imagenUrl != null and !#strings.isEmpty(producto.imagenUrl) and !#strings.contains(producto.imagenUrl, 'unsplash'))}" 
+                                 th:src="${spotifyCoverUrl != null and !#strings.isEmpty(spotifyCoverUrl) and !#strings.contains(spotifyCoverUrl, 'unsplash') ? spotifyCoverUrl : producto.imagenUrl}" 
+                                 th:alt="${producto.titulo}" 
+                                 class="img-fluid" 
+                                 style="width: 100%; aspect-ratio: 1/1; object-fit: cover;">
+                            <div th:unless="${(spotifyCoverUrl != null and !#strings.isEmpty(spotifyCoverUrl) and !#strings.contains(spotifyCoverUrl, 'unsplash')) or (producto.imagenUrl != null and !#strings.isEmpty(producto.imagenUrl) and !#strings.contains(producto.imagenUrl, 'unsplash'))}" 
+                                 class="d-flex align-items-center justify-content-center text-secondary" style="height: 320px;">
+                                <i class="bi bi-disc" style="font-size: 5rem;"></i>
+                            </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center text-start pt-2">
                         <div>
                             <span class="meta-mono text-muted d-block" style="font-size: 0.75rem;">ARTISTA</span>
-                            <span class="fw-medium text-light" th:text="${albumSpotify.artista}">Artista</span>
+                            <span class="fw-medium text-light" th:text="${spotifyArtistName != null ? spotifyArtistName : albumSpotify.artista}">Artista</span>
                         </div>
                         <div class="text-end">
                             <span class="meta-mono text-muted d-block" style="font-size: 0.75rem;">LANZAMIENTO</span>
@@ -52,7 +78,7 @@
 
                     <h1 class="h3 text-light fw-medium mb-3" th:text="${producto.titulo}">Título del Producto</h1>
 
-                    <div class="p-3 mb-4" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                    <div class="p-3 mb-4" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
                         <div class="row text-center g-2">
                             <div class="col-6 border-end" style="border-color: var(--border-hairline) !important;">
                                 <span class="text-secondary small d-block mb-1">Precio de Venta</span>
@@ -74,80 +100,79 @@
                     </div>
 
                     <div class="mt-auto pt-3" style="border-top: 1px solid var(--border-hairline);">
-                        <!-- Si es VINILO, CASSETTE o CD -> Agregar al carrito -->
-                        <div th:if="${producto.formato != 'EQUIPO_SONIDO'}">
-                            <form th:action="@{/compras/carrito/agregar}" method="post" class="d-flex gap-2">
-                                <input type="hidden" name="idProducto" th:value="${producto.id_producto}">
-                                <div style="max-width: 110px;">
-                                    <input type="number" name="cantidad" value="1" min="1" th:max="${producto.stock}" class="input-retro text-center" th:disabled="${producto.stock <= 0}" required>
+                        <!-- Si el usuario en sesión es ADMIN: Botones directos de gestión de inventario -->
+                        <div th:if="${(session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
+                            <div class="p-3 rounded mb-2" style="background: var(--surface-raised); border: 1px solid var(--border-hairline);">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-shield-lock me-1"></i> MODO ADMINISTRADOR</span>
+                                    <span th:if="${producto.animatedArtworkUrl != null and !#strings.isEmpty(producto.animatedArtworkUrl)}" class="badge bg-info-subtle text-info border border-info-subtle">
+                                        <i class="bi bi-play-circle-fill me-1"></i> Animated Artwork Activo
+                                    </span>
+                                    <span th:unless="${producto.animatedArtworkUrl != null and !#strings.isEmpty(producto.animatedArtworkUrl)}" class="small text-secondary">
+                                        Gestión de Catálogo
+                                    </span>
                                 </div>
-                                <button type="submit" class="btn-retro-primary flex-grow-1" th:disabled="${producto.stock <= 0}">
-                                    <i class="bi bi-cart-plus me-1"></i> Agregar al Carrito
-                                </button>
-                            </form>
+                                <div class="d-flex gap-2 mb-2">
+                                    <a th:href="@{'/catalogo/editar/' + ${producto.id_producto}}" class="btn-retro-primary flex-grow-1 text-center py-2">
+                                        <i class="bi bi-pencil-square me-1"></i> Editar Producto
+                                    </a>
+                                    <a th:href="@{'/catalogo/eliminar/' + ${producto.id_producto}}" 
+                                       onclick="return confirm('¿Confirmas la eliminación permanente de este producto?');" 
+                                       class="btn-retro-secondary text-danger flex-grow-1 text-center py-2">
+                                        <i class="bi bi-trash me-1"></i> Eliminar Producto
+                                    </a>
+                                </div>
+                                <div class="pt-2 border-top" style="border-color: var(--border-hairline) !important;">
+                                    <a th:href="@{'/catalogo/editar/' + ${producto.id_producto}}" class="btn-retro-ghost w-100 text-center py-1 text-info small" style="font-size: 0.8125rem;">
+                                        <i class="bi bi-film me-1"></i> Cargar / Cambiar Animated Artwork (Apple Music Artwork Finder)
+                                    </a>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Si es EQUIPO_SONIDO -> Reservar alquiler -->
-                        <div th:if="${producto.formato == 'EQUIPO_SONIDO'}">
-                            <a th:href="@{/alquileres/reserva(equipoId=${producto.id_producto})}" class="btn-retro-primary w-100 text-center d-block">
-                                <i class="bi bi-calendar-plus me-1"></i> Reservar Alquiler de Equipo (30% Garantía)
-                            </a>
+                        <!-- Si el usuario NO es ADMIN: Botones normales de Compra y Alquiler -->
+                        <div th:unless="${(session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
+                            <!-- Si es VINILO, CASSETTE o CD -> Agregar al carrito -->
+                            <div th:if="${producto.formato != 'EQUIPO_SONIDO'}">
+                                <form th:action="@{/compras/carrito/agregar}" method="post" class="d-flex gap-2">
+                                    <input type="hidden" name="idProducto" th:value="${producto.id_producto}">
+                                    <div style="max-width: 110px;">
+                                        <input type="number" name="cantidad" value="1" min="1" th:max="${producto.stock}" class="input-retro text-center" th:disabled="${producto.stock <= 0}" required>
+                                    </div>
+                                    <button type="submit" class="btn-retro-primary flex-grow-1" th:disabled="${producto.stock <= 0}">
+                                        <i class="bi bi-cart-plus me-1"></i> Agregar al Carrito
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Si es EQUIPO_SONIDO -> Reservar alquiler -->
+                            <div th:if="${producto.formato == 'EQUIPO_SONIDO'}">
+                                <a th:href="@{/alquileres/reserva(equipoId=${producto.id_producto})}" class="btn-retro-primary w-100 text-center d-block">
+                                    <i class="bi bi-calendar-plus me-1"></i> Reservar Alquiler de Equipo (30% Garantía)
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Muestras de Audio y Pistas de Spotify -->
-        <div class="card-retro p-4 mb-4">
+        <!-- Reproductor Exclusivo Oficial de Spotify Web -->
+        <div class="card-retro p-4 mb-4" th:if="${producto.spotify_album_id != null and !#strings.isEmpty(producto.spotify_album_id)}">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h5 text-light fw-medium mb-0">
-                    <i class="bi bi-spotify text-success me-2"></i>Muestras de Audio y Preescucha (30s)
+                    <i class="bi bi-spotify text-success me-2"></i>Reproductor Oficial de Spotify
                 </h2>
-                <span class="meta-mono text-muted" th:text="${#lists.size(albumSpotify.tracks)} + ' Pistas'">3 Pistas</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                    <i class="bi bi-broadcast me-1"></i> Streaming Oficial Spotify
+                </span>
             </div>
-
-            <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--border-hairline); color: #a1a1aa;">
-                            <th style="width: 48px;">#</th>
-                            <th>Pista</th>
-                            <th>Muestra de Audio</th>
-                            <th class="text-end" style="width: 80px;">Duración</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="track : ${albumSpotify.tracks}" style="border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle;">
-                            <td class="meta-mono text-muted" th:text="${track.numero}">1</td>
-                            <td class="text-light fw-medium" th:text="${track.nombre}">Nombre de la pista</td>
-                            <td>
-                                <div th:if="${track.previewUrl != null}">
-                                    <audio controls preload="none" style="height: 32px; max-width: 320px;">
-                                        <source th:src="${track.previewUrl}" type="audio/mpeg">
-                                        Tu navegador no soporta el reproductor de audio.
-                                    </audio>
-                                </div>
-                                <div th:if="${track.previewUrl == null}">
-                                    <span class="meta-mono text-muted" style="font-size: 0.75rem;">Preescucha directa en Spotify Embed</span>
-                                </div>
-                            </td>
-                            <td class="text-end meta-mono text-secondary" th:text="${track.duracion}">3:45</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Spotify Embed Player opcional -->
-            <div class="mt-4 pt-3" style="border-top: 1px solid var(--border-hairline);" th:if="${producto.spotify_album_id != null and !#strings.isEmpty(producto.spotify_album_id)}">
-                <span class="text-secondary small d-block mb-2">Reproductor Oficial Spotify Web:</span>
-                <iframe style="border-radius: var(--radius-control);"
-                        th:src="'https://open.spotify.com/embed/album/' + ${producto.spotify_album_id} + '?utm_source=generator&theme=0'"
-                        width="100%" height="152" frameBorder="0"
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                        loading="lazy">
-                </iframe>
-            </div>
+            <iframe style="border-radius: var(--radius-control);"
+                    th:src="'https://open.spotify.com/embed/album/' + ${producto.spotify_album_id} + '?utm_source=generator&theme=0'"
+                    width="100%" height="352" frameBorder="0"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy">
+            </iframe>
         </div>
     </main>
 

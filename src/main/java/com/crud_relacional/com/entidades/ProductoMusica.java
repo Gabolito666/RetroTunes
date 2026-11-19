@@ -17,7 +17,6 @@ public class ProductoMusica implements Serializable {
     @Column(name = "id_producto")
     private Long id_producto;
 
-    @NotBlank(message = "El SKU es obligatorio")
     @Column(name = "sku", unique = true, nullable = false, length = 50)
     private String sku;
 
@@ -47,10 +46,43 @@ public class ProductoMusica implements Serializable {
     @Column(name = "spotify_album_id")
     private String spotify_album_id;
 
+    @Column(name = "imagen_url", length = 500)
+    private String imagen_url;
+
+    @Column(name = "animated_artwork_url", length = 500, nullable = true)
+    private String animated_artwork_url;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.sku == null || this.sku.isBlank()) {
+            this.sku = generarSkuAutomatico(this.formato);
+        }
+    }
+
+    public static String generarSkuAutomatico(String formato) {
+        String prefijo = switch (formato != null ? formato.toUpperCase().trim() : "") {
+            case "VINILO" -> "VIN";
+            case "CASSETTE" -> "CAS";
+            case "CD" -> "CD";
+            case "EQUIPO_SONIDO" -> "EQP";
+            default -> "RET";
+        };
+        String hash = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 4).toUpperCase();
+        return prefijo + "-" + hash;
+    }
+
     public ProductoMusica() {
     }
 
     public ProductoMusica(String sku, String titulo, String formato, BigDecimal precio_venta, BigDecimal precio_alquiler_dia, Integer stock, String spotify_album_id) {
+        this(sku, titulo, formato, precio_venta, precio_alquiler_dia, stock, spotify_album_id, null);
+    }
+
+    public ProductoMusica(String sku, String titulo, String formato, BigDecimal precio_venta, BigDecimal precio_alquiler_dia, Integer stock, String spotify_album_id, String imagen_url) {
+        this(sku, titulo, formato, precio_venta, precio_alquiler_dia, stock, spotify_album_id, imagen_url, null);
+    }
+
+    public ProductoMusica(String sku, String titulo, String formato, BigDecimal precio_venta, BigDecimal precio_alquiler_dia, Integer stock, String spotify_album_id, String imagen_url, String animated_artwork_url) {
         this.sku = sku;
         this.titulo = titulo;
         this.formato = formato;
@@ -58,6 +90,8 @@ public class ProductoMusica implements Serializable {
         this.precio_alquiler_dia = precio_alquiler_dia;
         this.stock = stock;
         this.spotify_album_id = spotify_album_id;
+        this.imagen_url = imagen_url;
+        this.animated_artwork_url = animated_artwork_url;
     }
 
     public Long getId_producto() {
@@ -122,5 +156,37 @@ public class ProductoMusica implements Serializable {
 
     public void setSpotify_album_id(String spotify_album_id) {
         this.spotify_album_id = spotify_album_id;
+    }
+
+    public String getImagen_url() {
+        return imagen_url;
+    }
+
+    public void setImagen_url(String imagen_url) {
+        this.imagen_url = imagen_url;
+    }
+
+    public String getImagenUrl() {
+        return imagen_url;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagen_url = imagenUrl;
+    }
+
+    public String getAnimated_artwork_url() {
+        return animated_artwork_url;
+    }
+
+    public void setAnimated_artwork_url(String animated_artwork_url) {
+        this.animated_artwork_url = animated_artwork_url;
+    }
+
+    public String getAnimatedArtworkUrl() {
+        return animated_artwork_url;
+    }
+
+    public void setAnimatedArtworkUrl(String animatedArtworkUrl) {
+        this.animated_artwork_url = animatedArtworkUrl;
     }
 }

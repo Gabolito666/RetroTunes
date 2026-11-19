@@ -43,6 +43,12 @@ public class AlquilerEquipo implements Serializable {
     @Column(name = "estado", nullable = false, length = 30)
     private String estado = "RESERVADO"; // RESERVADO, EN_USO, DEVUELTO, CON_NOVEDAD
 
+    @Column(name = "novedad_tecnica", length = 500)
+    private String novedad_tecnica;
+
+    @Column(name = "deposito_devuelto")
+    private Boolean deposito_devuelto = false;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario cliente;
@@ -135,5 +141,21 @@ public class AlquilerEquipo implements Serializable {
 
     public void setEquipo(ProductoMusica equipo) {
         this.equipo = equipo;
+    }
+
+    public String getNovedad_tecnica() {
+        return novedad_tecnica;
+    }
+
+    public void setNovedad_tecnica(String novedad_tecnica) {
+        this.novedad_tecnica = novedad_tecnica;
+    }
+
+    public Boolean getDeposito_devuelto() {
+        return deposito_devuelto;
+    }
+
+    public void setDeposito_devuelto(Boolean deposito_devuelto) {
+        this.deposito_devuelto = deposito_devuelto;
     }
 }

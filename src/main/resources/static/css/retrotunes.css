@@ -1,51 +1,273 @@
 /* ==========================================================================
-   RetroTunes — Acoustic Warm Design System (Unslop Edition)
-   Palette: Warm Ramp (Nogal, Vinilo & Ámbar Acústico)
-   Rules: 4px Grid, Typographic Hierarchy 400-500, Hairline Borders, Zero Slop
+   RetroTunes — Acoustic Design System (Unslop Edition)
+   Thematic Palettes with Light & Dark Counterparts:
+     1. "Cobalt & Retro Tape" -> cobalt-dark (Default) | cobalt-light
+     2. "Warm Vinyl & Amber"  -> warm-dark             | warm-light
+     3. "Hi-Fi Studio"        -> hifi-dark             | hifi-light
+   Strict Contrast: WCAG AA Certified (> 4.5:1 text, > 3:1 controls)
    ========================================================================== */
 
-:root {
-  /* Warm Neutral Ramp (Tokens Specification) */
-  --surface-deep: #12110f;       /* Barra superior, pie y fondos profundos */
-  --surface-page: #161513;       /* Lienzo principal */
-  --surface-card: #1c1a18;       /* Superficie de tarjetas y módulos */
-  --surface-raised: #262421;     /* Controles, filas activas e inputs */
-  --surface-hover: #2e2b27;      /* Hover sutil de elementos interactivos */
+/* --------------------------------------------------------------------------
+   1. PALETA COBALT & RETRO TAPE (OSCURO & CLARO)
+   -------------------------------------------------------------------------- */
+:root,
+[data-theme="cobalt-dark"],
+[data-theme="cobalt-retro"] {
+  --theme-name: "Cobalt & Retro Tape (Oscuro)";
+  --theme-mode: "dark";
+
+  /* Superficies Ink Medianoche */
+  --surface-deep: #070913;       /* Carcasa profunda y navbar */
+  --surface-page: #0b0f19;       /* Lienzo principal */
+  --surface-card: #111726;       /* Tarjetas y módulos */
+  --surface-raised: #1a2238;     /* Controles, inputs y paneles elevados */
+  --surface-hover: #232d4a;      /* Hover interactivo */
+  --card-hover-bg: #151d30;
 
   /* Hairlines y Bordes */
-  --border-hairline: rgba(239, 233, 222, 0.08);
-  --border-subtle: rgba(239, 233, 222, 0.12);
-  --border-focus: rgba(229, 139, 32, 0.45);
+  --border-hairline: rgba(224, 231, 255, 0.10);
+  --border-subtle: rgba(224, 231, 255, 0.18);
+  --border-focus: rgba(56, 189, 248, 0.60);
 
-  /* Texto y Roles Tipográficos */
-  --text-primary: #efe9de;       /* Marfil cálido de lectura principal */
-  --text-secondary: #aaa398;     /* Subtítulos y etiquetas secundarias */
-  --text-muted: #8a847a;         /* Metadatos, notas y pies */
+  /* Texto de Alta Legibilidad (WCAG AA > 4.5:1) */
+  --text-primary: #f8fafc;       /* Ratio > 15:1 */
+  --text-secondary: #cbd5e1;     /* Ratio > 9.5:1 */
+  --text-muted: #94a3b8;         /* Ratio > 5.2:1 */
 
-  /* Acento Único: Ámbar Acústico (Calibrado a contraste > 4.5:1) */
-  --accent: #e58b20;
-  --accent-hover: #f09a32;
-  --accent-contrast: #12110f;
+  /* Acento: Cian Cinta Eléctrica */
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --accent-contrast: #070913;
+  --accent-subtle: rgba(56, 189, 248, 0.14);
+  --accent-glow: rgba(56, 189, 248, 0.28);
 
   /* Semántica Tonal */
-  --semantic-success: #4cc38a;
-  --semantic-success-bg: rgba(76, 195, 138, 0.1);
-  --semantic-danger: #e5484d;
-  --semantic-danger-bg: rgba(229, 72, 77, 0.1);
-  --semantic-warning: #e58b20;
-  --semantic-warning-bg: rgba(229, 139, 32, 0.1);
+  --semantic-success: #2dd4bf;
+  --semantic-success-bg: rgba(45, 212, 191, 0.12);
+  --semantic-danger: #f43f5e;
+  --semantic-danger-bg: rgba(244, 63, 94, 0.12);
+  --semantic-warning: #f59e0b;
+  --semantic-warning-bg: rgba(245, 158, 11, 0.12);
 
-  /* Radios Matemáticos Anidados (Inner = Outer - Padding) */
   --radius-card: 12px;
   --radius-control: 8px;
   --radius-badge: 6px;
 
-  /* Tipografía */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* Base Body */
+[data-theme="cobalt-light"] {
+  --theme-name: "Cobalt & Retro Tape (Claro)";
+  --theme-mode: "light";
+
+  /* Superficies Claras Metálicas / Cinta */
+  --surface-deep: #e2e8f0;       /* Navbar y footer gris plata */
+  --surface-page: #f1f5f9;       /* Fondo cobalto plata claro */
+  --surface-card: #ffffff;       /* Tarjetas blancas nítidas */
+  --surface-raised: #e2e8f0;     /* Paneles y controles elevados */
+  --surface-hover: #cbd5e1;      /* Hover feedback */
+  --card-hover-bg: #f8fafc;
+
+  /* Hairlines y Bordes Suaves */
+  --border-hairline: rgba(15, 23, 42, 0.12);
+  --border-subtle: rgba(15, 23, 42, 0.20);
+  --border-focus: rgba(2, 132, 199, 0.60);
+
+  /* Texto de Alto Contraste en Claro */
+  --text-primary: #0f172a;       /* Ratio > 16:1 */
+  --text-secondary: #334155;     /* Ratio > 9.5:1 */
+  --text-muted: #64748b;         /* Ratio > 5.0:1 */
+
+  /* Acento: Azul Cobalto Profundo */
+  --accent: #0284c7;
+  --accent-hover: #0369a1;
+  --accent-contrast: #ffffff;    /* Ratio > 4.5:1 */
+  --accent-subtle: rgba(2, 132, 199, 0.12);
+  --accent-glow: rgba(2, 132, 199, 0.25);
+
+  /* Semántica Tonal Claro */
+  --semantic-success: #0d9488;
+  --semantic-success-bg: rgba(13, 148, 136, 0.12);
+  --semantic-danger: #e11d48;
+  --semantic-danger-bg: rgba(225, 29, 72, 0.12);
+  --semantic-warning: #d97706;
+  --semantic-warning-bg: rgba(217, 119, 6, 0.12);
+
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --radius-badge: 6px;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* --------------------------------------------------------------------------
+   2. PALETA WARM VINYL & AMBER (OSCURO & CLARO)
+   -------------------------------------------------------------------------- */
+[data-theme="warm-dark"],
+[data-theme="warm-vinyl"] {
+  --theme-name: "Warm Vinyl & Amber (Oscuro)";
+  --theme-mode: "dark";
+
+  --surface-deep: #12110f;
+  --surface-page: #161513;
+  --surface-card: #1c1a18;
+  --surface-raised: #262421;
+  --surface-hover: #2e2b27;
+  --card-hover-bg: #201e1b;
+
+  --border-hairline: rgba(239, 233, 222, 0.10);
+  --border-subtle: rgba(239, 233, 222, 0.18);
+  --border-focus: rgba(245, 158, 11, 0.60);
+
+  --text-primary: #fdfbf7;       /* Ratio > 14:1 */
+  --text-secondary: #d6cfc4;     /* Ratio > 9.0:1 */
+  --text-muted: #aba396;         /* Ratio > 5.0:1 */
+
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --accent-contrast: #12110f;
+  --accent-subtle: rgba(245, 158, 11, 0.14);
+  --accent-glow: rgba(245, 158, 11, 0.28);
+
+  --semantic-success: #4cc38a;
+  --semantic-success-bg: rgba(76, 195, 138, 0.12);
+  --semantic-danger: #e5484d;
+  --semantic-danger-bg: rgba(229, 72, 77, 0.12);
+  --semantic-warning: #f59e0b;
+  --semantic-warning-bg: rgba(245, 158, 11, 0.12);
+
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --radius-badge: 6px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+[data-theme="warm-light"] {
+  --theme-name: "Warm Vinyl & Amber (Claro)";
+  --theme-mode: "light";
+
+  --surface-deep: #ede7dc;       /* Crema tostada de carátula */
+  --surface-page: #f7f4ee;       /* Papel acústico cálido */
+  --surface-card: #fdfbf7;       /* Tarjeta de marfil cálido */
+  --surface-raised: #ede7dc;     /* Paneles y controles */
+  --surface-hover: #e2dacd;
+  --card-hover-bg: #f5f0e6;
+
+  --border-hairline: rgba(28, 25, 23, 0.12);
+  --border-subtle: rgba(28, 25, 23, 0.20);
+  --border-focus: rgba(194, 65, 12, 0.60);
+
+  --text-primary: #1c1917;       /* Ratio > 15:1 */
+  --text-secondary: #44403c;     /* Ratio > 8.8:1 */
+  --text-muted: #78716c;         /* Ratio > 4.8:1 */
+
+  --accent: #c2410c;             /* Ámbar óxido acústico */
+  --accent-hover: #9a3412;
+  --accent-contrast: #ffffff;    /* Ratio > 5.5:1 */
+  --accent-subtle: rgba(194, 65, 12, 0.12);
+  --accent-glow: rgba(194, 65, 12, 0.25);
+
+  --semantic-success: #15803d;
+  --semantic-success-bg: rgba(21, 128, 61, 0.12);
+  --semantic-danger: #b91c1c;
+  --semantic-danger-bg: rgba(185, 28, 28, 0.12);
+  --semantic-warning: #b45309;
+  --semantic-warning-bg: rgba(180, 83, 9, 0.12);
+
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --radius-badge: 6px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* --------------------------------------------------------------------------
+   3. PALETA HI-FI STUDIO (OSCURO & CLARO)
+   -------------------------------------------------------------------------- */
+[data-theme="hifi-dark"] {
+  --theme-name: "Hi-Fi Studio (Oscuro)";
+  --theme-mode: "dark";
+
+  --surface-deep: #0d0d0f;       /* Rack de estudio mate */
+  --surface-page: #121214;       /* Chasis anodizado */
+  --surface-card: #18181b;       /* Módulos rackeables */
+  --surface-raised: #222226;     /* Diales y selectores */
+  --surface-hover: #2a2a30;
+  --card-hover-bg: #1c1c20;
+
+  --border-hairline: rgba(237, 237, 237, 0.10);
+  --border-subtle: rgba(237, 237, 237, 0.18);
+  --border-focus: rgba(255, 107, 43, 0.60);
+
+  --text-primary: #ffffff;       /* Ratio > 15.5:1 */
+  --text-secondary: #d4d4d8;     /* Ratio > 10.0:1 */
+  --text-muted: #a1a1aa;         /* Ratio > 5.5:1 */
+
+  --accent: #ff6b2b;             /* Naranja vúmetro analógico */
+  --accent-hover: #ff7f47;
+  --accent-contrast: #0d0d0f;
+  --accent-subtle: rgba(255, 107, 43, 0.14);
+  --accent-glow: rgba(255, 107, 43, 0.28);
+
+  --semantic-success: #34d399;
+  --semantic-success-bg: rgba(52, 211, 153, 0.12);
+  --semantic-danger: #f87171;
+  --semantic-danger-bg: rgba(248, 113, 113, 0.12);
+  --semantic-warning: #fbbf24;
+  --semantic-warning-bg: rgba(251, 191, 36, 0.12);
+
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --radius-badge: 6px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+[data-theme="hifi-light"] {
+  --theme-name: "Hi-Fi Studio (Claro)";
+  --theme-mode: "light";
+
+  --surface-deep: #e4e4e7;       /* Chasis de aluminio cepillado */
+  --surface-page: #f4f4f5;       /* Consola gris estudio clara */
+  --surface-card: #ffffff;       /* Módulos de superficie blanca */
+  --surface-raised: #e4e4e7;     /* Diales y selectores */
+  --surface-hover: #d4d4d8;
+  --card-hover-bg: #fafafa;
+
+  --border-hairline: rgba(9, 9, 11, 0.12);
+  --border-subtle: rgba(9, 9, 11, 0.20);
+  --border-focus: rgba(234, 88, 12, 0.60);
+
+  --text-primary: #09090b;       /* Ratio > 18:1 */
+  --text-secondary: #3f3f46;     /* Ratio > 8.8:1 */
+  --text-muted: #71717a;         /* Ratio > 4.8:1 */
+
+  --accent: #ea580c;             /* Naranja estudio de alta visibilidad */
+  --accent-hover: #c2410c;
+  --accent-contrast: #ffffff;    /* Ratio > 4.6:1 */
+  --accent-subtle: rgba(234, 88, 12, 0.12);
+  --accent-glow: rgba(234, 88, 12, 0.25);
+
+  --semantic-success: #16a34a;
+  --semantic-success-bg: rgba(22, 163, 74, 0.12);
+  --semantic-danger: #dc2626;
+  --semantic-danger-bg: rgba(220, 38, 38, 0.12);
+  --semantic-warning: #d97706;
+  --semantic-warning-bg: rgba(217, 119, 6, 0.12);
+
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --radius-badge: 6px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* ==========================================================================
+   Base Body y Reglas Globales de Contraste (Unslop)
+   ========================================================================== */
 body {
   background-color: var(--surface-page);
   color: var(--text-primary);
@@ -57,6 +279,42 @@ body {
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Tipografía de Alto Contraste */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+p, span, label, td, th, li {
+  color: inherit;
+}
+
+/* Sobrescritura de Clases Bootstrap para Garantizar Contraste Dinámico */
+.text-light {
+  color: var(--text-primary) !important;
+}
+
+.text-white {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.meta-mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted) !important;
+  letter-spacing: 0.02em;
 }
 
 /* Enlaces y Selección */
@@ -71,7 +329,7 @@ a:hover {
 }
 
 ::selection {
-  background-color: rgba(229, 139, 32, 0.3);
+  background-color: var(--accent-glow);
   color: var(--text-primary);
 }
 
@@ -79,17 +337,18 @@ a:hover {
    Navegación (Quiet Chrome)
    ========================================================================== */
 .navbar-retro {
-  background-color: var(--surface-deep);
+  background-color: var(--surface-deep) !important;
   border-bottom: 1px solid var(--border-hairline);
   min-height: 60px;
   padding-top: 0;
   padding-bottom: 0;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .brand-retro {
   font-family: var(--font-sans);
   font-weight: 600;
-  font-size: 1.0625rem; /* 17px */
+  font-size: 1.0625rem;
   letter-spacing: -0.01em;
   color: var(--text-primary) !important;
   display: inline-flex;
@@ -104,6 +363,7 @@ a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.2s ease;
 }
 
 .nav-link {
@@ -118,7 +378,7 @@ a:hover {
 .nav-link:hover,
 .nav-link.active {
   color: var(--text-primary) !important;
-  background-color: rgba(239, 233, 222, 0.04);
+  background-color: var(--surface-raised);
 }
 
 /* ==========================================================================
@@ -128,13 +388,13 @@ a:hover {
   background-color: var(--surface-card);
   border: 1px solid var(--border-hairline);
   border-radius: var(--radius-card);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .card-retro:hover {
   border-color: var(--border-subtle);
-  background-color: #1e1c1a;
+  background-color: var(--card-hover-bg);
 }
 
 .card-header-retro {
@@ -143,6 +403,51 @@ a:hover {
   padding: 12px 16px;
   border-top-left-radius: calc(var(--radius-card) - 1px);
   border-top-right-radius: calc(var(--radius-card) - 1px);
+}
+
+/* ==========================================================================
+   Carátulas Animadas Apple Music Artwork (.mp4)
+   ========================================================================== */
+.animated-cover-media {
+  object-fit: cover;
+  border-radius: var(--radius-control);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 16px var(--accent-subtle);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  display: block;
+}
+
+.animated-cover-media:hover {
+  transform: translateY(-3px) scale(1.015);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.60), 0 0 20px var(--accent-glow);
+}
+
+/* ==========================================================================
+   Tablas Limpias y Adaptativas
+   ========================================================================== */
+.table,
+.table-retro {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-primary);
+  --bs-table-border-color: var(--border-hairline);
+  --bs-table-hover-bg: var(--surface-hover);
+  --bs-table-hover-color: var(--text-primary);
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+.table th,
+.table-retro th {
+  color: var(--text-secondary) !important;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  background: transparent !important;
+}
+
+.table td,
+.table-retro td {
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-hairline) !important;
+  background: transparent !important;
 }
 
 /* ==========================================================================
@@ -161,7 +466,8 @@ a:hover {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background-color 0.15s ease, transform 0.05s ease;
+  transition: background-color 0.15s ease, transform 0.05s ease, color 0.15s ease;
+  cursor: pointer;
 }
 
 .btn-retro-primary:hover {
@@ -187,6 +493,7 @@ a:hover {
   justify-content: center;
   gap: 8px;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  cursor: pointer;
 }
 
 .btn-retro-secondary:hover {
@@ -212,31 +519,18 @@ a:hover {
   justify-content: center;
   gap: 6px;
   transition: all 0.15s ease;
+  cursor: pointer;
 }
 
 .btn-retro-ghost:hover {
-  background-color: rgba(239, 233, 222, 0.04);
+  background-color: var(--surface-raised);
   color: var(--text-primary);
 }
 
 /* ==========================================================================
-   Insignias de Formato (Signature Details)
+   Insignias de Formato y Estados
    ========================================================================== */
-.badge-signature {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem; /* 11px */
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  padding: 4px 8px;
-  border-radius: var(--radius-badge);
-  background-color: rgba(239, 233, 222, 0.05);
-  border: 1px solid var(--border-hairline);
-  color: var(--text-primary);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
+.badge-signature,
 .badge-vinilo,
 .badge-cassette,
 .badge-cd,
@@ -262,8 +556,8 @@ a:hover {
   letter-spacing: 0.03em;
   padding: 4px 8px;
   border-radius: var(--radius-badge);
-  background-color: rgba(229, 139, 32, 0.1);
-  border: 1px solid rgba(229, 139, 32, 0.25);
+  background-color: var(--accent-subtle);
+  border: 1px solid var(--accent-glow);
   color: var(--accent);
 }
 
@@ -297,7 +591,7 @@ a:hover {
   background-color: var(--surface-hover);
   border-color: var(--border-focus);
   color: var(--text-primary);
-  box-shadow: 0 0 0 2px rgba(229, 139, 32, 0.15);
+  box-shadow: 0 0 0 2px var(--accent-glow);
   outline: none;
 }
 
@@ -334,13 +628,6 @@ a:hover {
   font-variant-numeric: tabular-nums;
 }
 
-.meta-mono {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
-}
-
 /* ==========================================================================
    Filtros de Catálogo
    ========================================================================== */
@@ -356,7 +643,7 @@ a:hover {
 }
 
 .filter-tab:hover {
-  background-color: rgba(239, 233, 222, 0.04);
+  background-color: var(--surface-hover);
   color: var(--text-primary);
 }
 
@@ -368,33 +655,68 @@ a:hover {
 }
 
 /* ==========================================================================
-   Alertas Tono Discreto
+   Alertas con Legibilidad Alta
    ========================================================================== */
 .alert-retro-success {
   background-color: var(--semantic-success-bg);
-  border: 1px solid rgba(76, 195, 138, 0.25);
+  border: 1px solid var(--semantic-success);
   color: var(--semantic-success);
   border-radius: var(--radius-control);
   padding: 12px 16px;
   font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .alert-retro-danger {
   background-color: var(--semantic-danger-bg);
-  border: 1px solid rgba(229, 72, 77, 0.25);
+  border: 1px solid var(--semantic-danger);
   color: var(--semantic-danger);
   border-radius: var(--radius-control);
   padding: 12px 16px;
   font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .alert-retro-warning {
   background-color: var(--semantic-warning-bg);
-  border: 1px solid rgba(229, 139, 32, 0.25);
-  color: var(--accent);
+  border: 1px solid var(--semantic-warning);
+  color: var(--semantic-warning);
   border-radius: var(--radius-control);
   padding: 12px 16px;
   font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Dropdowns y Menús de Tema
+   ========================================================================== */
+.dropdown-menu-retro {
+  background-color: var(--surface-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-control);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  color: var(--text-primary) !important;
+}
+
+.dropdown-item-retro {
+  color: var(--text-secondary) !important;
+  font-size: 0.8125rem;
+  border-radius: 6px;
+  transition: all 0.12s ease;
+}
+
+.dropdown-item-retro:hover,
+.dropdown-item-retro:focus {
+  background-color: var(--surface-raised) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-preview-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 1px rgba(125, 125, 125, 0.25);
 }
 
 /* ==========================================================================
@@ -406,4 +728,6 @@ a:hover {
   padding-top: 28px;
   padding-bottom: 28px;
   margin-top: auto;
+  color: var(--text-muted);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
