@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis Alquileres de Equipos')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 960px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 text-light fw-medium mb-1">Mis Alquileres y Reservas</h1>
+                <p class="text-secondary small mb-0">Gestión de equipos acústicos rentados y calendarios sincronizados.</p>
+            </div>
+            <a th:href="@{/alquileres/reserva}" class="btn-retro-primary" style="font-size: 0.8125rem;">
+                <i class="bi bi-plus-lg me-1"></i> Nueva Reserva
+            </a>
+        </div>
+
+        <div th:if="${mensajeExito}" class="alert alert-success py-2 mb-4" style="background: #142918; border-color: #1f4d27; color: #86efac; font-size: 0.875rem;" th:text="${mensajeExito}"></div>
+
+        <div th:if="${#lists.isEmpty(reservas)}" class="card-retro text-center py-5 my-4">
+            <div class="brand-icon mx-auto mb-3" style="font-size: 2.5rem;">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <h2 class="h5 text-light fw-medium mb-1">No tienes alquileres registrados</h2>
+            <p class="text-secondary small mb-3">Reserva tornamesas y amplificadores vintage para tus sesiones de escucha.</p>
+            <a th:href="@{/alquileres/reserva}" class="btn-retro-secondary">
+                Ver Equipos Disponibles
+            </a>
+        </div>
+
+        <div th:if="${not #lists.isEmpty(reservas)}" class="card-retro p-3">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-hairline); color: #a1a1aa;">
+                            <th>Código / Estado</th>
+                            <th>Equipo de Sonido</th>
+                            <th>Período de Alquiler</th>
+                            <th class="text-end">Depósito (30%)</th>
+                            <th class="text-end">Monto Total</th>
+                            <th class="text-center" style="width: 140px;">Sincronización</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${reservas}" style="border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle;">
+                            <td>
+                                <span class="meta-mono text-light fw-medium d-block" th:text="${r.codigo_alquiler}">ALQ-001</span>
+                                <span class="badge" 
+                                      th:classappend="${r.estado == 'RESERVADO' ? 'bg-primary' : (r.estado == 'EN_USO' ? 'bg-warning text-dark' : (r.estado == 'DEVUELTO' ? 'bg-success' : 'bg-danger'))}"
+                                      style="font-size: 0.6875rem;"
+                                      th:text="${r.estado}">
+                                    RESERVADO
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-light fw-medium d-block" th:text="${r.equipo.titulo}">Tornamesa</span>
+                                <span class="meta-mono text-muted" style="font-size: 0.75rem;" th:text="${r.equipo.sku}">EQ-001</span>
+                            </td>
+                            <td>
+                                <span class="text-secondary small d-block">
+                                    <i class="bi bi-calendar3 me-1"></i> <span th:text="${r.fecha_inicio}">2026-11-20</span>
+                                </span>
+                                <span class="text-muted small">
+                                    hasta <span th:text="${r.fecha_fin}">2026-11-25</span>
+                                </span>
+                            </td>
+                            <td class="text-end meta-mono text-warning" th:text="'$' + ${#numbers.formatDecimal(r.deposito_garantia, 1, 2)}">$0.00</td>
+                            <td class="text-end meta-mono fw-medium text-light" th:text="'$' + ${#numbers.formatDecimal(r.monto_alquiler, 1, 2)}">$0.00</td>
+                            <td class="text-center">
+                                <a th:href="@{'/alquileres/' + ${r.id_alquiler} + '/ical'}" class="btn-retro-secondary" style="font-size: 0.75rem; padding: 4px 8px;" title="Descargar archivo .ics para Google Calendar / Apple Calendar">
+                                    <i class="bi bi-calendar-event me-1"></i> iCal (.ics)
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

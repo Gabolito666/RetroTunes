@@ -1,11 +1,27 @@
 {
   "version": 2,
   "skills": {
+    "ffmpeg": {
+      "source": "n0an/ffmpeg-skill",
+      "commit": "aec7706a3602134bfc606cc8a85eb010dfaa22ad",
+      "sourceType": "github",
+      "skillPath": "ffmpeg/SKILL.md",
+      "computedHash": "af2d1918dedb15736be7fc2263d94e200cd99b0f522db14591a8a6b10d1c27b5",
+      "installMode": "copy"
+    },
     "frontend-ui-engineering": {
       "source": "addyosmani/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/frontend-ui-engineering/SKILL.md",
       "computedHash": "1bea3daa371bfb466445f5a33ee063f2aadf27469b2308a340e803398bcb4251"
+    },
+    "playwright": {
+      "source": "openai/skills",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "sourceType": "github",
+      "skillPath": "skills/.curated/playwright/SKILL.md",
+      "computedHash": "d4ba899ecfb8c4b72c52bf11527e308ae07427483380feae0d518ea7d09bb844",
+      "installMode": "copy"
     },
     "source-driven-development": {
       "source": "addyosmani/agent-skills",

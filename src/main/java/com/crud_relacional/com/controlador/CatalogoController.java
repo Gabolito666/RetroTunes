@@ -11,21 +11,26 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/catalogo")
 public class CatalogoController {
 
     private final ProductoMusicaRepository productoMusicaRepository;
+    private final SpotifyClientHelper spotifyClientHelper;
 
-    // Cero capa Service: Inyección directa de repositorio por constructor
-    public CatalogoController(ProductoMusicaRepository productoMusicaRepository) {
+    public CatalogoController(ProductoMusicaRepository productoMusicaRepository,
+                              SpotifyClientHelper spotifyClientHelper) {
         this.productoMusicaRepository = productoMusicaRepository;
+        this.spotifyClientHelper = spotifyClientHelper;
     }
 
     @GetMapping
     public String listar(@RequestParam(value = "formato", required = false, defaultValue = "TODOS") String formato,
                          @RequestParam(value = "creado", required = false) String creado,
+                         @RequestParam(value = "compraExitosa", required = false) String compraExitosa,
+                         @RequestParam(value = "factura", required = false) String factura,
                          Model model) {
         List<ProductoMusica> productos;
 
@@ -39,17 +44,36 @@ public class CatalogoController {
         model.addAttribute("productos", productos);
         model.addAttribute("formatoActual", formato.toUpperCase());
         if (creado != null) {
-            model.addAttribute("mensajeExito", "¡Producto musical publicado exitosamente en el catálogo!");
+            model.addAttribute("mensajeExito", "Producto musical publicado exitosamente en el catálogo.");
+        }
+        if (compraExitosa != null && factura != null) {
+            model.addAttribute("mensajeCompra", "¡Compra procesada con éxito! Factura generada: " + factura);
         }
 
         return "catalogo/listar";
+    }
+
+    @GetMapping("/{id}")
+    public String verDetalle(@PathVariable("id") Long id, Model model) {
+        Optional<ProductoMusica> opt = productoMusicaRepository.findById(id);
+        if (opt.isEmpty()) {
+            return "redirect:/catalogo";
+        }
+        ProductoMusica producto = opt.get();
+        SpotifyClientHelper.AlbumDto album = spotifyClientHelper.obtenerAlbum(
+                producto.getSpotify_album_id(),
+                producto.getTitulo()
+        );
+
+        model.addAttribute("producto", producto);
+        model.addAttribute("albumSpotify", album);
+        return "catalogo/detalle";
     }
 
     @GetMapping("/nuevo")
     public String mostrarFormularioNuevo(HttpSession session, Model model) {
         Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
 
-        // Regla: Solo ADMIN o DISCOGRAFICA pueden acceder al formulario de alta
         if (usuario == null) {
             return "redirect:/login";
         }
@@ -79,7 +103,6 @@ public class CatalogoController {
             return "redirect:/catalogo?errorPermisos=true";
         }
 
-        // Validación de SKU único
         if (producto.getSku() != null && productoMusicaRepository.existsBySku(producto.getSku().trim())) {
             bindingResult.rejectValue("sku", "error.producto", "El SKU ya se encuentra registrado en el inventario.");
         }
