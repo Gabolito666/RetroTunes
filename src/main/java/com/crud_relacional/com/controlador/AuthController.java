@@ -68,8 +68,9 @@ public class AuthController {
                 return "login";
             }
 
-            // Almacenar usuario autenticado en la sesión HTTP
+            // Almacenar usuario autenticado en la sesión HTTP (compatibilidad estándar y SpEL sessionScope.usuario)
             session.setAttribute("usuarioLogueado", usuario);
+            session.setAttribute("usuario", usuario);
 
             // Redirección según rol
             String rol = usuario.getRol() != null ? usuario.getRol().getNombre_rol() : "CLIENTE";

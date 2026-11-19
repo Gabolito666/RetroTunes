@@ -40,21 +40,30 @@ public class AlquilerController {
         this.usuarioRepository = usuarioRepository;
     }
 
-    @GetMapping("/reserva")
+    /**
+     * Mapeo estricto para GET /alquileres y GET /alquileres/reserva
+     * Filtra EXCLUSIVAMENTE productos de categoría equipo ('EQUIPO_SONIDO')
+     */
+    @GetMapping({"", "/reserva"})
     public String mostrarFormularioReserva(@RequestParam(value = "equipoId", required = false) Long equipoId,
                                            HttpSession session,
-                                           Model model,
-                                           RedirectAttributes redirectAttributes) {
+                                           Model model) {
         Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
         if (usuario == null) {
-            redirectAttributes.addFlashAttribute("mensajeError", "Inicia sesión para reservar equipos de sonido.");
-            return "redirect:/login";
+            usuario = (Usuario) session.getAttribute("usuario");
         }
 
-        List<ProductoMusica> equipos = productoMusicaRepository.findByFormato("EQUIPO_SONIDO");
+        boolean esAdmin = usuario != null && usuario.getRol() != null && 
+                ("ADMIN".equalsIgnoreCase(usuario.getRol().getNombre_rol()) || "ADMIN".equalsIgnoreCase(usuario.getRol().getNombreRol()));
+
+        // SEPARACIÓN ESTRICTA: Solo equipos de sonido, prohibido vinilos, cassettes o CDs
+        List<ProductoMusica> equipos = productoMusicaRepository.findSoloEquipos();
         model.addAttribute("equipos", equipos);
         model.addAttribute("equipoSeleccionadoId", equipoId);
         model.addAttribute("fechaMinima", LocalDate.now());
+        model.addAttribute("esAdmin", esAdmin);
+        model.addAttribute("usuarioAutenticado", usuario != null);
+
         return "alquileres/reserva";
     }
 
@@ -66,6 +75,10 @@ public class AlquilerController {
                                   RedirectAttributes redirectAttributes) {
         Usuario usuarioEnSesion = (Usuario) session.getAttribute("usuarioLogueado");
         if (usuarioEnSesion == null) {
+            usuarioEnSesion = (Usuario) session.getAttribute("usuario");
+        }
+        if (usuarioEnSesion == null) {
+            redirectAttributes.addFlashAttribute("errorAlquiler", "Inicia sesión para formalizar la reserva.");
             return "redirect:/login";
         }
 
@@ -74,10 +87,16 @@ public class AlquilerController {
             return "redirect:/login";
         }
 
+        // Bloqueo estricto a nivel de backend para ADMIN: No puede formalizar reservas de alquiler
+        if (cliente.getRol() != null && ("ADMIN".equalsIgnoreCase(cliente.getRol().getNombre_rol()) || "ADMIN".equalsIgnoreCase(cliente.getRol().getNombreRol()))) {
+            redirectAttributes.addFlashAttribute("errorAlquiler", "Acción restringida: El perfil Administrador supervisa e inspecciona el inventario; las reservas de alquiler están destinadas a clientes.");
+            return "redirect:/alquileres";
+        }
+
         Optional<ProductoMusica> optEquipo = productoMusicaRepository.findById(idEquipo);
-        if (optEquipo.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorAlquiler", "El equipo seleccionado no existe.");
-            return "redirect:/alquileres/reserva";
+        if (optEquipo.isEmpty() || !"EQUIPO_SONIDO".equalsIgnoreCase(optEquipo.get().getFormato())) {
+            redirectAttributes.addFlashAttribute("errorAlquiler", "El artículo seleccionado no corresponde a un equipo de sonido para alquiler.");
+            return "redirect:/alquileres";
         }
 
         ProductoMusica equipo = optEquipo.get();

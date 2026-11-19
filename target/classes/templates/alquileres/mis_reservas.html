@@ -30,9 +30,9 @@
 
         <div th:if="${not #lists.isEmpty(reservas)}" class="card-retro p-3">
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                <table class="table table-retro table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
                     <thead>
-                        <tr style="border-bottom: 1px solid var(--border-hairline); color: #a1a1aa;">
+                        <tr style="border-bottom: 1px solid var(--border-hairline); color: var(--text-secondary);">
                             <th>Código / Estado</th>
                             <th>Equipo de Sonido</th>
                             <th>Período de Alquiler</th>
@@ -42,7 +42,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="r : ${reservas}" style="border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle;">
+                        <tr th:each="r : ${reservas}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
                             <td>
                                 <span class="meta-mono text-light fw-medium d-block" th:text="${r.codigo_alquiler}">ALQ-001</span>
                                 <span class="badge" 

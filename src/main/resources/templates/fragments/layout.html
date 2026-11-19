@@ -14,6 +14,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Estilos Custom RetroTunes (Warm Ramp) -->
     <link rel="stylesheet" th:href="@{/css/retrotunes.css}">
+    <!-- Script Inmediato de Tema Anti-FOUC (Dark & Light Counterparts) -->
+    <script>
+        (function() {
+            var raw = localStorage.getItem('retrotunes-theme');
+            var t = (raw === 'cobalt-retro' ? 'cobalt-dark' : (raw === 'warm-vinyl' ? 'warm-dark' : raw)) || 'cobalt-dark';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
 </head>
 <body>
 
@@ -36,16 +44,41 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/alquileres/reserva}">
-                            <i class="bi bi-speaker me-1"></i> Alquiler Equipos
+                        <a class="nav-link" th:href="@{/alquileres}">
+                            <i class="bi bi-speaker me-1"></i> Equipos de Sonido
                         </a>
                     </li>
-                    <li class="nav-item" th:if="${session.usuarioLogueado != null}">
+                    <li class="nav-item" th:if="${(session.usuario != null and session.usuario.rol.nombreRol != 'ADMIN') and (session.usuarioLogueado == null or session.usuarioLogueado.rol.nombre_rol != 'ADMIN')}">
                         <a class="nav-link" th:href="@{/alquileres/mis-reservas}">
                             <i class="bi bi-calendar-check me-1"></i> Mis Alquileres
                         </a>
                     </li>
-                    <li class="nav-item" th:if="${session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombre_rol == 'DISCOGRAFICA')}">
+                    <li class="nav-item" th:if="${(session.usuario != null and session.usuario.rol.nombreRol != 'ADMIN') and (session.usuarioLogueado == null or session.usuarioLogueado.rol.nombre_rol != 'ADMIN')}">
+                        <a class="nav-link" th:href="@{/compras/mis-compras}">
+                            <i class="bi bi-receipt me-1"></i> Mis Compras
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${(session.usuarioLogueado != null and session.usuarioLogueado.rol.nombre_rol == 'ADMIN') or (session.usuario != null and session.usuario.rol.nombreRol == 'ADMIN')}">
+                        <a class="nav-link text-info" th:href="@{/admin/dashboard}">
+                            <i class="bi bi-speedometer2 me-1"></i> Panel de Admin
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${(session.usuarioLogueado != null and session.usuarioLogueado.rol.nombre_rol == 'ADMIN') or (session.usuario != null and session.usuario.rol.nombreRol == 'ADMIN')}">
+                        <a class="nav-link text-info" th:href="@{/admin/reportes}">
+                            <i class="bi bi-file-earmark-bar-graph me-1"></i> Reportes
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${(session.usuarioLogueado != null and session.usuarioLogueado.rol.nombre_rol == 'TECNICO_OPERACIONES') or (session.usuario != null and session.usuario.rol.nombreRol == 'TECNICO_OPERACIONES')}">
+                        <a class="nav-link text-warning" th:href="@{/operaciones/inspeccion}">
+                            <i class="bi bi-tools me-1"></i> Inspección
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${(session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ARTISTA' or session.usuarioLogueado.rol.nombre_rol == 'DISCOGRAFICA')) or (session.usuario != null and (session.usuario.rol.nombreRol == 'ARTISTA' or session.usuario.rol.nombreRol == 'DISCOGRAFICA'))}">
+                        <a class="nav-link text-success" th:href="@{/artista/liquidacion}">
+                            <i class="bi bi-cash-coin me-1"></i> Regalías
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${(session.usuarioLogueado != null and session.usuarioLogueado.rol.nombre_rol == 'DISCOGRAFICA') or (session.usuario != null and session.usuario.rol.nombreRol == 'DISCOGRAFICA')}">
                         <a class="nav-link text-warning" th:href="@{/catalogo/nuevo}">
                             <i class="bi bi-plus-circle me-1"></i> Publicar producto
                         </a>
@@ -53,22 +86,97 @@
                 </ul>
 
                 <div class="d-flex align-items-center gap-2">
-                    <a th:href="@{/compras/carrito}" class="btn-retro-secondary position-relative me-2">
+                    <!-- Selector de Paleta / Tema Dinámico (Dark & Light Counterparts) -->
+                    <div class="dropdown me-1">
+                        <button class="btn-retro-secondary dropdown-toggle" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.8125rem; padding: 6px 10px;">
+                            <i class="bi bi-palette2 me-1"></i> <span id="currentThemeLabel">Cobalt (Oscuro)</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-retro dropdown-menu-end p-2" aria-labelledby="themeDropdown" style="min-width: 250px;">
+                            <li><h6 class="dropdown-header text-secondary small px-2 py-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">COBALT & RETRO TAPE</h6></li>
+                            <li>
+                                <button class="dropdown-item dropdown-item-retro d-flex align-items-center justify-content-between p-2" onclick="setRetroTheme('cobalt-dark')">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <span class="theme-preview-dot" style="background: #38bdf8;"></span>
+                                        <span>Cobalt Tape (Oscuro)</span>
+                                    </span>
+                                    <i class="bi bi-check2 text-info" id="check-cobalt-dark" style="display: none;"></i>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item dropdown-item-retro d-flex align-items-center justify-content-between p-2" onclick="setRetroTheme('cobalt-light')">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <span class="theme-preview-dot" style="background: #0284c7;"></span>
+                                        <span>Cobalt Tape (Claro)</span>
+                                    </span>
+                                    <i class="bi bi-check2 text-info" id="check-cobalt-light" style="display: none;"></i>
+                                </button>
+                            </li>
+
+                            <li><hr class="dropdown-divider my-1" style="border-color: var(--border-hairline);"></li>
+                            <li><h6 class="dropdown-header text-secondary small px-2 py-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">WARM VINYL & AMBER</h6></li>
+                            <li>
+                                <button class="dropdown-item dropdown-item-retro d-flex align-items-center justify-content-between p-2" onclick="setRetroTheme('warm-dark')">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <span class="theme-preview-dot" style="background: #f59e0b;"></span>
+                                        <span>Warm Vinyl (Oscuro)</span>
+                                    </span>
+                                    <i class="bi bi-check2 text-warning" id="check-warm-dark" style="display: none;"></i>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item dropdown-item-retro d-flex align-items-center justify-content-between p-2" onclick="setRetroTheme('warm-light')">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <span class="theme-preview-dot" style="background: #c2410c;"></span>
+                                        <span>Warm Vinyl (Claro)</span>
+                                    </span>
+                                    <i class="bi bi-check2 text-warning" id="check-warm-light" style="display: none;"></i>
+                                </button>
+                            </li>
+
+                            <li><hr class="dropdown-divider my-1" style="border-color: var(--border-hairline);"></li>
+                            <li><h6 class="dropdown-header text-secondary small px-2 py-1" style="font-size: 0.72rem; letter-spacing: 0.04em;">HI-FI STUDIO</h6></li>
+                            <li>
+                                <button class="dropdown-item dropdown-item-retro d-flex align-items-center justify-content-between p-2" onclick="setRetroTheme('hifi-dark')">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <span class="theme-preview-dot" style="background: #ff6b2b;"></span>
+                                        <span>Hi-Fi Studio (Oscuro)</span>
+                                    </span>
+                                    <i class="bi bi-check2 text-danger" id="check-hifi-dark" style="display: none;"></i>
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item dropdown-item-retro d-flex align-items-center justify-content-between p-2" onclick="setRetroTheme('hifi-light')">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <span class="theme-preview-dot" style="background: #ea580c;"></span>
+                                        <span>Hi-Fi Studio (Claro)</span>
+                                    </span>
+                                    <i class="bi bi-check2 text-danger" id="check-hifi-light" style="display: none;"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a th:if="${(session.usuario == null or session.usuario.rol.nombreRol != 'ADMIN') and (session.usuarioLogueado == null or session.usuarioLogueado.rol.nombre_rol != 'ADMIN')}" 
+                       th:href="@{/compras/carrito}" class="btn-retro-secondary position-relative me-2" id="cartNavButton">
                         <i class="bi bi-cart3 me-1"></i> Carrito
+                        <span id="cartBadgeCount" class="badge rounded-pill bg-danger ms-1" 
+                              th:style="${session.carritoCompras != null and not #maps.isEmpty(session.carritoCompras) ? 'font-size: 0.7rem;' : 'font-size: 0.7rem; display: none;'}"
+                              th:text="${session.carritoCompras != null ? #maps.size(session.carritoCompras) : 0}">0</span>
                     </a>
                     <!-- Si hay usuario autenticado -->
-                    <div th:if="${session.usuarioLogueado != null}" class="d-flex align-items-center gap-3">
+                    <div th:if="${session.usuarioLogueado != null or session.usuario != null}" class="d-flex align-items-center gap-2">
                         <span class="badge-rol">
-                            <span th:text="${session.usuarioLogueado.rol.nombre_rol}">CLIENTE</span>
+                            <span th:text="${session.usuarioLogueado != null ? session.usuarioLogueado.rol.nombre_rol : session.usuario.rol.nombreRol}">CLIENTE</span>
                         </span>
-                        <span class="small text-secondary d-none d-md-inline" th:text="${session.usuarioLogueado.nombre_completo}">Usuario</span>
-                        <a th:href="@{/logout}" class="btn-retro-ghost text-danger">
-                            <i class="bi bi-box-arrow-right"></i> Salir
+                        <span class="small text-secondary d-none d-lg-inline" th:text="${session.usuarioLogueado != null ? session.usuarioLogueado.nombre_completo : session.usuario.nombreCompleto}">Usuario</span>
+                        <a th:href="@{/logout}" class="btn-retro-secondary text-danger d-inline-flex align-items-center gap-1" style="padding: 6px 12px; font-size: 0.8125rem;" title="Cerrar Sesión Activa">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="fw-medium">Cerrar Sesión</span>
                         </a>
                     </div>
 
                     <!-- Si es invitado -->
-                    <div th:if="${session.usuarioLogueado == null}" class="d-flex align-items-center gap-2">
+                    <div th:if="${session.usuarioLogueado == null and session.usuario == null}" class="d-flex align-items-center gap-2">
                         <a th:href="@{/login}" class="btn-retro-secondary">
                             Ingresar
                         </a>
@@ -87,6 +195,23 @@
             <p class="mb-1 text-secondary small">© 2026 <strong>RetroTunes</strong>. Tienda y archivo musical de audio analógico.</p>
             <small class="meta-mono">Vinilos prensados en 180g • Cintas magnéticas • Equipos acústicos calibrados</small>
         </div>
+
+        <!-- Toast Container para Notificaciones de Carrito y Alertas Flotantes -->
+        <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+            <div id="cartToast" class="toast align-items-center text-bg-dark border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-success fs-5" id="cartToastIcon"></i>
+                        <div>
+                            <strong class="d-block text-light" id="cartToastTitle">Agregado al Carrito</strong>
+                            <span class="small text-secondary" id="cartToastBody">Producto añadido satisfactoriamente.</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
         <!-- Bootstrap 5 JS Bundle -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script th:src="@{/js/main.js}"></script>

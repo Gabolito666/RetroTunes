@@ -35,32 +35,32 @@
             <button type="button" class="btn-close btn-close-white small" data-bs-dismiss="alert" aria-label="Cerrar"></button>
         </div>
 
-        <!-- Filtros de Formato (Barra Segmentada Discreta) -->
+        <!-- Filtros y Secciones de Formato de Música Física (Separación Estricta sin Equipos) -->
         <div class="d-flex flex-wrap align-items-center gap-2 mb-4 p-1" style="background-color: var(--surface-deep); border-radius: var(--radius-control); border: 1px solid var(--border-hairline); width: fit-content;">
-            <a th:href="@{/catalogo(formato='TODOS')}" 
+            <a th:href="@{/catalogo}" 
                class="filter-tab" 
                th:classappend="${formatoActual == 'TODOS' ? 'active' : ''}">
-               Todos
+               <i class="bi bi-music-note-list me-1"></i> Toda la Música
             </a>
-            <a th:href="@{/catalogo(formato='VINILO')}" 
+            <a th:href="@{/catalogo/vinilos}" 
                class="filter-tab" 
                th:classappend="${formatoActual == 'VINILO' ? 'active' : ''}">
                <i class="bi bi-vinyl me-1"></i> Vinilos
             </a>
-            <a th:href="@{/catalogo(formato='CASSETTE')}" 
+            <a th:href="@{/catalogo/cassettes}" 
                class="filter-tab" 
                th:classappend="${formatoActual == 'CASSETTE' ? 'active' : ''}">
                <i class="bi bi-cassette me-1"></i> Cassettes
             </a>
-            <a th:href="@{/catalogo(formato='CD')}" 
+            <a th:href="@{/catalogo/cds}" 
                class="filter-tab" 
                th:classappend="${formatoActual == 'CD' ? 'active' : ''}">
                <i class="bi bi-disc me-1"></i> CDs
             </a>
-            <a th:href="@{/catalogo(formato='EQUIPO_SONIDO')}" 
+            <a th:href="@{/alquileres}" 
                class="filter-tab" 
                th:classappend="${formatoActual == 'EQUIPO_SONIDO' ? 'active' : ''}">
-               <i class="bi bi-speaker me-1"></i> Equipos
+               <i class="bi bi-speaker me-1"></i> Equipos de Sonido
             </a>
         </div>
 
@@ -77,8 +77,32 @@
                         <span class="meta-mono" th:text="${prod.sku}">SKU-000</span>
                     </div>
 
+                    <!-- Portada Oficial de Álbum / Equipo (Soporte Animated Artwork .mp4 de Apple Music y Estática) -->
+                    <div class="position-relative overflow-hidden" style="border-bottom: 1px solid var(--border-hairline); height: 180px; background: #121214;">
+                        <a th:href="@{'/catalogo/detalle/' + ${prod.id_producto}(formato=${formatoActual})}" class="d-block h-100">
+                            <!-- Carátula Animada Apple Music (.mp4) -->
+                            <video th:if="${prod.animatedArtworkUrl != null and !#strings.isEmpty(prod.animatedArtworkUrl)}" 
+                                   autoplay loop muted playsinline 
+                                   class="animated-cover-media w-100 h-100">
+                                <source th:src="${prod.animatedArtworkUrl}" type="video/mp4">
+                            </video>
+                            <!-- Carátula Estática Oficial de Spotify si animatedArtworkUrl es nulo -->
+                            <div th:unless="${prod.animatedArtworkUrl != null and !#strings.isEmpty(prod.animatedArtworkUrl)}" class="w-100 h-100">
+                                <img th:if="${prod.imagenUrl != null and !#strings.isEmpty(prod.imagenUrl) and !#strings.contains(prod.imagenUrl, 'unsplash')}" 
+                                     th:src="${prod.imagenUrl}" 
+                                     th:alt="${prod.titulo}" 
+                                     class="w-100 h-100" 
+                                     style="object-fit: cover;">
+                                <div th:if="${prod.imagenUrl == null or #strings.isEmpty(prod.imagenUrl) or #strings.contains(prod.imagenUrl, 'unsplash')}" 
+                                     class="w-100 h-100 d-flex align-items-center justify-content-center text-secondary" style="background: #18181b;">
+                                    <i class="bi" th:classappend="${prod.formato == 'VINILO' ? 'bi-vinyl' : (prod.formato == 'CASSETTE' ? 'bi-cassette' : (prod.formato == 'CD' ? 'bi-disc' : 'bi-speaker'))}" style="font-size: 3rem;"></i>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
                     <div class="p-3 d-flex flex-column flex-grow-1">
-                        <a th:href="@{'/catalogo/' + ${prod.id_producto}}" class="text-decoration-none">
+                        <a th:href="@{'/catalogo/detalle/' + ${prod.id_producto}(formato=${formatoActual})}" class="text-decoration-none">
                             <h2 class="h6 text-light fw-medium mb-3" style="line-height: 1.4; min-height: 2.8rem;" th:text="${prod.titulo}">Título del Álbum</h2>
                         </a>
 
@@ -103,14 +127,41 @@
                                 <span class="price-rental" th:text="'$' + ${#numbers.formatDecimal(prod.precio_alquiler_dia, 1, 2)} + ' /d'">$0.00 /d</span>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="meta-mono" th:classappend="${prod.stock > 0 ? 'text-secondary' : 'text-danger'}">
                                     <i class="bi" th:classappend="${prod.stock > 0 ? 'bi-check2' : 'bi-dash-circle'}"></i>
                                     <span th:text="${prod.stock > 0 ? prod.stock + ' disponibles' : 'Agotado'}">10 disponibles</span>
                                 </span>
-                                <a th:href="@{'/catalogo/' + ${prod.id_producto}}" class="btn-retro-secondary" style="padding: 6px 12px; font-size: 0.8125rem;">
+                                <span class="badge-signature" style="font-size: 0.6875rem;" th:text="${prod.formato}">VINILO</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a th:href="@{'/catalogo/detalle/' + ${prod.id_producto}(formato=${formatoActual})}" class="btn-retro-secondary flex-grow-1 text-center" style="padding: 6px 8px; font-size: 0.8125rem;">
                                     <i class="bi bi-eye"></i> Detalle
                                 </a>
+
+                                <!-- Si el rol es ADMIN: Oculta compra/alquiler y muestra botones CRUD directos -->
+                                <th:block th:if="${(session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
+                                    <a th:href="@{'/catalogo/editar/' + ${prod.id_producto}}" class="btn-retro-primary flex-grow-1 text-center" style="padding: 6px 8px; font-size: 0.8125rem;" title="Editar Producto">
+                                        <i class="bi bi-pencil-square"></i> Editar
+                                    </a>
+                                    <a th:href="@{'/catalogo/eliminar/' + ${prod.id_producto}}" onclick="return confirm('¿Confirmas la eliminación de este producto?');" class="btn-retro-ghost text-danger flex-grow-1 text-center" style="padding: 6px 8px; font-size: 0.8125rem;" title="Eliminar Producto">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </a>
+                                </th:block>
+
+                                <!-- Si NO es ADMIN: Botones de Compra y Alquiler normales -->
+                                <th:block th:unless="${(session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
+                                    <button th:if="${prod.stock > 0 and prod.formato != 'EQUIPO_SONIDO'}" type="button" 
+                                            class="btn-retro-primary flex-grow-1 text-center btn-add-cart-ajax" 
+                                            th:attr="data-id=${prod.id_producto},data-titulo=${prod.titulo}" 
+                                            style="padding: 6px 8px; font-size: 0.8125rem;">
+                                        <i class="bi bi-cart-plus"></i> + Carrito
+                                    </button>
+                                    <a th:if="${prod.formato == 'EQUIPO_SONIDO'}" th:href="@{/alquileres/reserva(equipoId=${prod.id_producto})}"
+                                       class="btn-retro-primary flex-grow-1 text-center" style="padding: 6px 8px; font-size: 0.8125rem;">
+                                        <i class="bi bi-speaker"></i> Alquilar
+                                    </a>
+                                </th:block>
                             </div>
                         </div>
                     </div>

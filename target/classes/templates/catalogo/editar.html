@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Editar Producto')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container my-5 flex-grow-1 d-flex justify-content-center" style="max-width: 1200px;">
+        <div class="col-12 col-lg-8">
+            <div class="card-retro p-4 p-md-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3" style="border-bottom: 1px solid var(--border-hairline);">
+                    <div>
+                        <h1 class="h5 fw-medium text-light mb-1">Editar Producto Musical</h1>
+                        <p class="text-secondary small mb-0">Actualización de ficha técnica, precios y existencias en inventario</p>
+                    </div>
+                    <a th:href="@{'/catalogo/' + ${producto.id_producto}}" class="btn-retro-secondary" style="padding: 6px 12px; font-size: 0.8125rem;">
+                        <i class="bi bi-arrow-left"></i> Volver a la Ficha
+                    </a>
+                </div>
+
+                <form th:action="@{'/catalogo/editar/' + ${producto.id_producto}}" th:object="${producto}" method="post" enctype="multipart/form-data">
+                    <!-- Resumen Global de Errores -->
+                    <div th:if="${#fields.hasErrors('*')}" class="alert alert-danger py-2 mb-3" style="background: #2d1515; border-color: #5c2020; color: #fca5a5;">
+                        <div class="fw-medium mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Por favor revisa los siguientes campos:</div>
+                        <ul class="mb-0 ps-3 small">
+                            <li th:each="err : ${#fields.allErrors()}" th:text="${err}">Error</li>
+                        </ul>
+                    </div>
+                    <div th:if="${mensajeError}" class="alert alert-danger py-2 mb-3" style="background: #2d1515; border-color: #5c2020; color: #fca5a5;" th:text="${mensajeError}"></div>
+
+                    <div class="row g-3">
+                        <!-- SKU Fijo -->
+                        <div class="col-md-6">
+                            <label class="form-label-retro">Código SKU (Inmutable)</label>
+                            <input type="text" class="form-control form-control-retro meta-mono" th:field="*{sku}" readonly>
+                            <small class="meta-mono mt-1 d-block text-secondary">Identificador único asignado.</small>
+                        </div>
+
+                        <!-- Formato -->
+                        <div class="col-md-6">
+                            <label for="formato" class="form-label-retro">Formato físico</label>
+                            <select id="formato" th:field="*{formato}" class="form-select form-select-retro" th:errorclass="is-invalid" required>
+                                <option value="VINILO">Vinilo (LP / Single)</option>
+                                <option value="CASSETTE">Cassette magnético</option>
+                                <option value="CD">Disco compacto (CD Audio)</option>
+                                <option value="EQUIPO_SONIDO">Equipo de sonido o tornamesa</option>
+                            </select>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('formato')}" th:errors="*{formato}"></div>
+                        </div>
+
+                        <!-- Título -->
+                        <div class="col-12">
+                            <label for="titulo" class="form-label-retro">Título de la obra o dispositivo</label>
+                            <input type="text" id="titulo" th:field="*{titulo}" 
+                                   class="form-control form-control-retro" th:errorclass="is-invalid" 
+                                   placeholder="Título del álbum o modelo" required>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}"></div>
+                        </div>
+
+                        <!-- Precio Venta -->
+                        <div class="col-md-4">
+                            <label for="precio_venta" class="form-label-retro">Precio de venta ($ USD)</label>
+                            <div class="input-group">
+                                <span class="input-group-text-retro">$</span>
+                                <input type="number" step="0.01" min="0" id="precio_venta" th:field="*{precio_venta}" 
+                                       class="form-control form-control-retro tabular-nums" th:errorclass="is-invalid" required>
+                            </div>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('precio_venta')}" th:errors="*{precio_venta}"></div>
+                        </div>
+
+                        <!-- Precio Alquiler Diario -->
+                        <div class="col-md-4">
+                            <label for="precio_alquiler_dia" class="form-label-retro">Alquiler por día ($ USD)</label>
+                            <div class="input-group">
+                                <span class="input-group-text-retro">$</span>
+                                <input type="number" step="0.01" min="0" id="precio_alquiler_dia" th:field="*{precio_alquiler_dia}" 
+                                       class="form-control form-control-retro tabular-nums" th:errorclass="is-invalid" required>
+                            </div>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('precio_alquiler_dia')}" th:errors="*{precio_alquiler_dia}"></div>
+                        </div>
+
+                        <!-- Stock -->
+                        <div class="col-md-4">
+                            <label for="stock" class="form-label-retro">Unidades disponibles</label>
+                            <div class="input-group">
+                                <span class="input-group-text-retro"><i class="bi bi-box-seam"></i></span>
+                                <input type="number" min="0" id="stock" th:field="*{stock}" 
+                                       class="form-control form-control-retro tabular-nums" th:errorclass="is-invalid" required>
+                            </div>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></div>
+                        </div>
+
+                        <!-- SECCIÓN A: Equipos de Sonido (Fotografía de Objeto Físico) -->
+                        <div id="seccionEquipoSonido" class="col-12" style="display: none;">
+                            <div class="p-3 rounded" style="background: var(--surface-deep); border: 1px solid var(--border-hairline);">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label-retro mb-0 text-light fw-medium">
+                                        <i class="bi bi-camera-fill text-warning me-1"></i> Fotografía del Equipo de Sonido
+                                    </label>
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.72rem;">
+                                        <i class="bi bi-speaker me-1"></i> Dispositivo Físico
+                                    </span>
+                                </div>
+                                <p class="text-secondary small mb-3">
+                                    Los equipos de sonido son objetos físicos (tornamesas, amplificadores, altavoces). Sube una foto real del equipo para mostrarla en el catálogo.
+                                </p>
+
+                                <!-- Vista previa de fotografía actual del equipo si existe -->
+                                <div th:if="${producto.imagen_url != null and !#strings.isEmpty(producto.imagen_url)}" class="mb-3 p-2 rounded d-flex align-items-center gap-3" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-hairline);">
+                                    <img th:src="${producto.imagen_url}" alt="Foto actual" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-hairline);">
+                                    <div class="small">
+                                        <span class="text-light fw-medium d-block"><i class="bi bi-check-circle-fill text-success me-1"></i> Foto actual del equipo</span>
+                                        <span class="text-secondary meta-mono text-truncate d-inline-block" style="max-width: 320px;" th:text="${producto.imagen_url}"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="imagenArchivo" class="form-label-retro small">Subir nueva foto desde tu dispositivo</label>
+                                    <input type="file" id="imagenArchivo" name="imagenArchivo" 
+                                           class="form-control form-control-retro" 
+                                           accept="image/png, image/jpeg, image/webp, image/gif">
+                                    <small class="meta-mono mt-1 d-block text-secondary">Formatos: JPG, PNG, WebP o GIF. Si no seleccionas ningún archivo, se mantendrá la foto actual.</small>
+                                </div>
+
+                                <div>
+                                    <label for="imagen_url_equipo" class="form-label-retro small">O bien, URL directa de la fotografía</label>
+                                    <input type="text" id="imagen_url_equipo" th:field="*{imagen_url}" 
+                                           class="form-control form-control-retro meta-mono" 
+                                           placeholder="https://ejemplo.com/fotos/tornamesa-retro.jpg o /uploads/equipos/...">
+                                    <small class="meta-mono mt-1 d-block text-secondary">Ruta o URL directa de la imagen.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN B: Música Física (Spotify Album ID & Apple Music Animated Artwork) -->
+                        <div id="seccionMusicaSpotify" class="col-12">
+                            <!-- Spotify Album ID o Enlace (Artwork Automático desde Spotify API) -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="spotify_album_id" class="form-label-retro mb-0">Enlace o ID de Álbum de Spotify</label>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.72rem;">
+                                        <i class="bi bi-spotify me-1"></i> Portada extraída de Spotify API
+                                    </span>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text-retro"><i class="bi bi-spotify text-success"></i></span>
+                                    <input type="text" id="spotify_album_id" th:field="*{spotify_album_id}" 
+                                           class="form-control form-control-retro meta-mono" 
+                                           placeholder="https://open.spotify.com/album/4aawyAB9vmqN3uQ7FjRGTy o ID de 22 caracteres">
+                                </div>
+                                <small class="meta-mono mt-1 d-block text-secondary">La portada oficial del álbum (Artwork) se toma y descarga directamente desde la API oficial de Spotify.</small>
+                                
+                                <!-- Vista previa de portada Spotify existente -->
+                                <div th:if="${producto.imagen_url != null and !#strings.isEmpty(producto.imagen_url)}" class="mt-2 p-2 rounded d-flex align-items-center gap-2" style="background: var(--surface-deep); border: 1px solid var(--border-hairline);">
+                                    <img th:src="${producto.imagen_url}" alt="Portada Spotify" style="width: 44px; height: 44px; object-fit: cover; border-radius: 4px;">
+                                    <div class="small">
+                                        <span class="text-light d-block"><i class="bi bi-check-circle-fill text-success me-1"></i> Artwork oficial activo</span>
+                                        <span class="text-secondary meta-mono text-truncate d-inline-block" style="max-width: 320px;" th:text="${producto.imagen_url}"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Opción de Animated Artwork desde Apple Music Artwork Finder -->
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="animatedArtworkUrl" class="form-label-retro mb-0">Animated Artwork (Apple Music Artwork Finder)</label>
+                                    <a href="https://bendodson.com/projects/apple-music-artwork-finder/" target="_blank" rel="noopener noreferrer" class="text-info small text-decoration-none">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> Abrir Apple Music Artwork Finder
+                                    </a>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text-retro"><i class="bi bi-film text-info"></i></span>
+                                    <input type="text" id="animatedArtworkUrl" th:field="*{animatedArtworkUrl}" 
+                                           class="form-control form-control-retro meta-mono" 
+                                           placeholder="https://...mp4 (Enlace de video .mp4 de Apple Music Artwork Finder)">
+                                </div>
+                                <small class="meta-mono mt-1 d-block text-secondary">
+                                    Opción para el administrador: Pega el enlace de video (.mp4) de la carátula animada para reproducirla en bucle continuo en el catálogo.
+                                </small>
+
+                                <!-- Vista previa de Animated Artwork existente -->
+                                <div th:if="${producto.animatedArtworkUrl != null and !#strings.isEmpty(producto.animatedArtworkUrl)}" class="mt-2 p-2 rounded d-flex align-items-center gap-2" style="background: var(--surface-deep); border: 1px solid var(--border-hairline);">
+                                    <video autoplay loop muted playsinline style="width: 44px; height: 44px; object-fit: cover; border-radius: 4px;">
+                                        <source th:src="${producto.animatedArtworkUrl}" type="video/mp4">
+                                    </video>
+                                    <div class="small">
+                                        <span class="text-light d-block"><i class="bi bi-play-circle-fill text-info me-1"></i> Animated Artwork activo</span>
+                                        <span class="text-secondary meta-mono text-truncate d-inline-block" style="max-width: 320px;" th:text="${producto.animatedArtworkUrl}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3" style="border-top: 1px solid var(--border-hairline);">
+                        <a th:href="@{'/catalogo/' + ${producto.id_producto}}" class="btn-retro-secondary">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn-retro-primary">
+                            <i class="bi bi-check2"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <script>
+        function toggleSeccionesFormato() {
+            const select = document.getElementById('formato');
+            const seccionMusica = document.getElementById('seccionMusicaSpotify');
+            const seccionEquipo = document.getElementById('seccionEquipoSonido');
+            if (!select || !seccionMusica || !seccionEquipo) return;
+
+            if (select.value === 'EQUIPO_SONIDO') {
+                seccionMusica.style.display = 'none';
+                seccionEquipo.style.display = 'block';
+            } else {
+                seccionMusica.style.display = 'block';
+                seccionEquipo.style.display = 'none';
+            }
+        }
+
+        document.getElementById('formato').addEventListener('change', toggleSeccionesFormato);
+        document.addEventListener('DOMContentLoaded', toggleSeccionesFormato);
+    </script>
+</body>
+</html>

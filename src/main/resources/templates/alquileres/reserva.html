@@ -1,89 +1,242 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Reserva de Equipos de Sonido')}"></head>
+<head th:replace="~{fragments/layout :: head('Equipos de Sonido y Alquileres')}"></head>
 <body>
     <div th:replace="~{fragments/layout :: navbar}"></div>
 
-    <main class="container py-4" style="max-width: 860px;">
-        <div class="mb-4">
-            <h1 class="h3 text-light fw-medium mb-1">Reserva y Alquiler de Equipos Acústicos</h1>
-            <p class="text-secondary small mb-0">Tornamesas, amplificadores valvulares y sistemas de monitoreo de alta fidelidad.</p>
+    <main class="container py-4" style="max-width: 1140px;">
+        <!-- Encabezado Principal y Modo Administrador -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3" style="border-bottom: 1px solid var(--border-hairline);">
+            <div>
+                <h1 class="h3 text-light fw-medium mb-1">
+                    <i class="bi bi-speaker text-primary me-2"></i>Equipos de Sonido y Acústica
+                </h1>
+                <p class="text-secondary small mb-0">Tornamesas analógicas, amplificadores valvulares y sistemas de reproducción de alta fidelidad.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
+                <th:block th:if="${esAdmin or (session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
+                    <span class="badge bg-warning text-dark px-3 py-2">
+                        <i class="bi bi-shield-lock-fill me-1"></i> MODO ADMINISTRADOR
+                    </span>
+                    <a th:href="@{/catalogo/nuevo}" class="btn-retro-primary py-2 px-3" style="font-size: 0.8125rem;">
+                        <i class="bi bi-plus-circle me-1"></i> Dar de Alta Equipo
+                    </a>
+                </th:block>
+            </div>
         </div>
 
+        <!-- Mensajes de Alerta -->
         <div th:if="${errorAlquiler}" class="alert alert-danger py-2 mb-4" style="background: #2d1515; border-color: #5c2020; color: #fca5a5; font-size: 0.875rem;" th:text="${errorAlquiler}"></div>
+        <div th:if="${errorStock}" class="alert alert-warning py-2 mb-4" style="font-size: 0.875rem;" th:text="${errorStock}"></div>
+        <div th:if="${mensajeExito}" class="alert alert-success py-2 mb-4" style="background: #142a1b; border-color: #1f4e2b; color: #86efac; font-size: 0.875rem;" th:text="${mensajeExito}"></div>
 
-        <div class="row g-4">
-            <div class="col-lg-7">
-                <div class="card-retro p-4">
-                    <form th:action="@{/alquileres/reserva}" method="post" id="formReserva">
-                        <div class="mb-3">
-                            <label class="form-label text-light small fw-medium">Seleccionar Equipo de Sonido</label>
-                            <select name="idEquipo" id="selectEquipo" class="form-select bg-dark text-light" style="border: 1px solid var(--border-hairline); border-radius: var(--radius-control);" required>
-                                <option value="" disabled th:selected="${equipoSeleccionadoId == null}">-- Selecciona un equipo disponible --</option>
-                                <option th:each="equipo : ${equipos}" 
-                                        th:value="${equipo.id_producto}" 
-                                        th:text="${equipo.titulo} + ' ($' + ${#numbers.formatDecimal(equipo.precio_alquiler_dia, 1, 2)} + ' /día)'"
-                                        th:selected="${equipoSeleccionadoId != null and equipoSeleccionadoId == equipo.id_producto}"
-                                        th:data-precio-dia="${equipo.precio_alquiler_dia}"
-                                        th:data-precio-venta="${equipo.precio_venta}">
-                                </option>
-                            </select>
-                        </div>
+        <!-- SECCIÓN 1: Catálogo e Inventario de Equipos de Sonido -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 text-light fw-medium mb-0">
+                    <i class="bi bi-grid-3x3-gap me-2"></i>Equipos de Sonido Disponibles
+                </h2>
+                <span class="meta-mono text-secondary small" th:text="${#lists.size(equipos)} + ' unidades registradas'">0 unidades</span>
+            </div>
 
-                        <div class="row g-3 mb-3">
-                            <div class="col-sm-6">
-                                <label class="form-label text-light small fw-medium">Fecha de Inicio</label>
-                                <input type="date" name="fechaInicio" id="fechaInicio" th:min="${fechaMinima}" class="input-retro" required>
-                            </div>
-                            <div class="col-sm-6">
-                                <label class="form-label text-light small fw-medium">Fecha de Devolución</label>
-                                <input type="date" name="fechaFin" id="fechaFin" th:min="${fechaMinima}" class="input-retro" required>
-                            </div>
-                        </div>
-
-                        <!-- Políticas de Alquiler -->
-                        <div class="p-3 mb-4" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
-                            <span class="text-warning small fw-medium d-block mb-1">
-                                <i class="bi bi-shield-check me-1"></i> Depósito de Garantía del 30%
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:if="${not #lists.isEmpty(equipos)}">
+                <div class="col" th:each="equipo : ${equipos}">
+                    <div class="card-retro h-100 d-flex flex-column">
+                        <!-- Cabecera de la Tarjeta -->
+                        <div class="card-header-retro d-flex justify-content-between align-items-center">
+                            <span class="badge-signature">
+                                <i class="bi bi-speaker"></i> EQUIPO_SONIDO
                             </span>
-                            <p class="text-secondary small mb-0" style="font-size: 0.8125rem;">
-                                Se retiene el 30% del valor comercial del equipo como fianza de cuidado. Este importe se reembolsa automáticamente al devolver el equipo en óptimas condiciones.
-                            </p>
+                            <span class="meta-mono" th:text="${equipo.sku}">EQP-000</span>
                         </div>
 
-                        <button type="submit" class="btn-retro-primary w-100 py-2">
-                            <i class="bi bi-calendar-check me-1"></i> Confirmar Reserva
-                        </button>
-                    </form>
+                        <!-- Imagen o Icono de Equipo -->
+                        <div class="position-relative overflow-hidden d-flex align-items-center justify-content-center" 
+                             style="border-bottom: 1px solid var(--border-hairline); height: 180px; background: #121214;">
+                            <img th:if="${equipo.imagenUrl != null and !#strings.isEmpty(equipo.imagenUrl) and !#strings.contains(equipo.imagenUrl, 'unsplash')}" 
+                                 th:src="${equipo.imagenUrl}" 
+                                 th:alt="${equipo.titulo}" 
+                                 class="w-100 h-100" 
+                                 style="object-fit: cover;">
+                            <div th:if="${equipo.imagenUrl == null or #strings.isEmpty(equipo.imagenUrl) or #strings.contains(equipo.imagenUrl, 'unsplash')}" 
+                                 class="w-100 h-100 d-flex align-items-center justify-content-center text-secondary" style="background: #18181b;">
+                                <i class="bi bi-speaker" style="font-size: 3.5rem;"></i>
+                            </div>
+                        </div>
+
+                        <!-- Contenido y Ficha -->
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <h3 class="h6 text-light fw-medium mb-2" style="line-height: 1.4; min-height: 2.8rem;" th:text="${equipo.titulo}">Nombre del Equipo</h3>
+
+                            <!-- Precios y Depósito -->
+                            <div class="p-2 mb-3 rounded" style="background: var(--surface-deep); border: 1px solid var(--border-hairline);">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-secondary small">Alquiler por día:</span>
+                                    <span class="text-light fw-medium meta-mono" th:text="'$' + ${#numbers.formatDecimal(equipo.precio_alquiler_dia, 1, 2)} + ' /d'">$0.00 /d</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-secondary small">Valor comercial:</span>
+                                    <span class="text-secondary meta-mono" th:text="'$' + ${#numbers.formatDecimal(equipo.precio_venta, 1, 2)}">$0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-warning small"><i class="bi bi-shield-check me-1"></i>Garantía (30%):</span>
+                                    <span class="text-warning meta-mono fw-medium" th:text="'$' + ${#numbers.formatDecimal(equipo.precio_venta.multiply(T(java.math.BigDecimal).valueOf(0.30)), 1, 2)}">$0.00</span>
+                                </div>
+                            </div>
+
+                            <!-- Estado del Stock -->
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="bi" th:classappend="${equipo.stock > 0 ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}"></i>
+                                <span class="small" th:classappend="${equipo.stock > 0 ? 'text-light' : 'text-danger'}" 
+                                      th:text="${equipo.stock > 0 ? equipo.stock + ' unidades disponibles' : 'Sin unidades disponibles'}">Stock</span>
+                            </div>
+
+                            <!-- Botones de Acción -->
+                            <div class="mt-auto pt-2 border-top d-flex gap-2" style="border-color: var(--border-hairline) !important;">
+                                <!-- Acciones para ADMINISTRADOR -->
+                                <th:block th:if="${esAdmin or (session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
+                                    <a th:href="@{'/catalogo/editar/' + ${equipo.id_producto}}" class="btn-retro-primary flex-grow-1 text-center py-1" style="font-size: 0.8125rem;">
+                                        <i class="bi bi-pencil-square me-1"></i> Editar
+                                    </a>
+                                    <a th:href="@{'/catalogo/' + ${equipo.id_producto}}" class="btn-retro-secondary py-1 text-center" style="font-size: 0.8125rem;" title="Ver Ficha Técnica">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{'/catalogo/eliminar/' + ${equipo.id_producto}}" onclick="return confirm('¿Confirmas la eliminación de este equipo?');" class="btn-retro-ghost text-danger py-1" style="font-size: 0.8125rem;" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </th:block>
+
+                                <!-- Acciones para CLIENTE / PÚBLICO -->
+                                <th:block th:unless="${esAdmin or (session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
+                                    <button type="button" 
+                                            class="btn-retro-primary flex-grow-1 text-center py-1" 
+                                            style="font-size: 0.8125rem;" 
+                                            th:disabled="${equipo.stock <= 0}"
+                                            th:onclick="'seleccionarEquipoParaReserva(' + ${equipo.id_producto} + ')'">
+                                        <i class="bi bi-calendar-plus me-1"></i> Reservar este Equipo
+                                    </button>
+                                    <a th:href="@{'/catalogo/' + ${equipo.id_producto}}" class="btn-retro-secondary py-1 text-center" style="font-size: 0.8125rem;" title="Ver Ficha Técnica">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Desglose en Tiempo Real -->
-            <div class="col-lg-5">
-                <div class="card-retro p-4 sticky-top" style="top: 80px;">
-                    <h2 class="h6 text-light fw-medium mb-3">Estimación del Alquiler</h2>
+            <!-- Estado Vacío -->
+            <div class="card-retro p-5 text-center my-3" th:if="${#lists.isEmpty(equipos)}">
+                <i class="bi bi-speaker text-secondary mb-3" style="font-size: 3rem;"></i>
+                <h3 class="h5 text-light fw-medium mb-1">No hay equipos de sonido registrados</h3>
+                <p class="text-secondary small mb-3">Actualmente no existen piezas de reproducción o amplificación en el catálogo.</p>
+                <div th:if="${esAdmin or (session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN'))}">
+                    <a th:href="@{/catalogo/nuevo}" class="btn-retro-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Crear Primer Equipo de Sonido
+                    </a>
+                </div>
+            </div>
+        </div>
 
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-secondary small">Duración estimada</span>
-                        <span class="meta-mono text-light" id="calcDias">0 días</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-secondary small">Tarifa de alquiler</span>
-                        <span class="meta-mono text-light" id="calcAlquiler">$0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-secondary small">Depósito garantía (30%)</span>
-                        <span class="meta-mono text-warning" id="calcGarantia">$0.00</span>
-                    </div>
+        <!-- SECCIÓN 2: Módulo y Formulario de Reserva / Calculadora de Alquiler -->
+        <div id="moduloReserva" class="pt-4" style="border-top: 1px solid var(--border-hairline);">
+            <div class="mb-4">
+                <h2 class="h5 text-light fw-medium mb-1">
+                    <i class="bi bi-calendar-range me-2 text-warning"></i>Calculadora y Gestión de Alquiler
+                </h2>
+                <p class="text-secondary small mb-0">Selecciona el equipo acústico y el rango de fechas para proyectar tarifas y depósito en garantía.</p>
+            </div>
 
-                    <div class="d-flex justify-content-between pt-3 my-3" style="border-top: 1px solid var(--border-hairline);">
-                        <span class="fw-medium text-light">Total Retenido/Pago</span>
-                        <span class="price-display fs-4" id="calcTotal">$0.00</span>
-                    </div>
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="card-retro p-4">
+                        <!-- Notificación para perfil Administrador -->
+                        <div th:if="${esAdmin or (session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}"
+                             class="alert alert-info py-2 small mb-3 d-flex align-items-center gap-2" style="background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.3); color: #38bdf8;">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <span><strong>Simulador de Alquiler:</strong> Como Administrador puedes proyectar costes y garantías. Las reservas oficiales son contratadas por clientes.</span>
+                        </div>
 
-                    <small class="meta-mono text-muted d-block text-center" style="font-size: 0.72rem;">
-                        Recibirás un archivo iCal (.ics) para sincronizar tu agenda con Google Calendar.
-                    </small>
+                        <form th:action="@{/alquileres/reserva}" method="post" id="formReserva">
+                            <div class="mb-3">
+                                <label class="form-label text-light small fw-medium">Seleccionar Equipo de Sonido</label>
+                                <select name="idEquipo" id="selectEquipo" class="form-select bg-dark text-light" style="border: 1px solid var(--border-hairline); border-radius: var(--radius-control);" required>
+                                    <option value="" disabled th:selected="${equipoSeleccionadoId == null}">-- Selecciona un equipo disponible --</option>
+                                    <option th:each="equipo : ${equipos}" 
+                                            th:value="${equipo.id_producto}" 
+                                            th:text="${equipo.titulo} + ' ($' + ${#numbers.formatDecimal(equipo.precio_alquiler_dia, 1, 2)} + ' /día)'"
+                                            th:selected="${equipoSeleccionadoId != null and equipoSeleccionadoId == equipo.id_producto}"
+                                            th:data-precio-dia="${equipo.precio_alquiler_dia}"
+                                            th:data-precio-venta="${equipo.precio_venta}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label text-light small fw-medium">Fecha de Inicio</label>
+                                    <input type="date" name="fechaInicio" id="fechaInicio" th:min="${fechaMinima}" class="input-retro" required>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label text-light small fw-medium">Fecha de Devolución</label>
+                                    <input type="date" name="fechaFin" id="fechaFin" th:min="${fechaMinima}" class="input-retro" required>
+                                </div>
+                            </div>
+
+                            <!-- Políticas de Alquiler -->
+                            <div class="p-3 mb-4" style="background: var(--surface-raised); border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                                <span class="text-warning small fw-medium d-block mb-1">
+                                    <i class="bi bi-shield-check me-1"></i> Depósito de Garantía del 30%
+                                </span>
+                                <p class="text-secondary small mb-0" style="font-size: 0.8125rem;">
+                                    Se retiene el 30% del valor comercial del equipo como fianza de custodia. Este importe se reembolsa automáticamente al devolver el equipo en óptimas condiciones técnicas.
+                                </p>
+                            </div>
+
+                            <!-- Botón para Administrador -->
+                            <th:block th:if="${esAdmin or (session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
+                                <button type="button" class="btn-retro-secondary w-100 py-2 text-warning" onclick="alert('El perfil Administrador supervisa e inspecciona el catálogo de equipos de sonido. La formalización contable de contratos de alquiler está habilitada exclusivamente para cuentas de cliente.');">
+                                    <i class="bi bi-calculator me-1"></i> Proyectar Tarifas (Modo Administrador)
+                                </button>
+                            </th:block>
+
+                            <!-- Botón para Cliente / Usuario -->
+                            <th:block th:unless="${esAdmin or (session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
+                                <button type="submit" class="btn-retro-primary w-100 py-2">
+                                    <i class="bi bi-calendar-check me-1"></i> Confirmar Reserva
+                                </button>
+                            </th:block>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Desglose en Tiempo Real -->
+                <div class="col-lg-5">
+                    <div class="card-retro p-4 sticky-top" style="top: 80px;">
+                        <h2 class="h6 text-light fw-medium mb-3">Estimación del Alquiler</h2>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary small">Duración estimada</span>
+                            <span class="meta-mono text-light" id="calcDias">0 días</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary small">Tarifa de alquiler</span>
+                            <span class="meta-mono text-light" id="calcAlquiler">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary small">Depósito garantía (30%)</span>
+                            <span class="meta-mono text-warning" id="calcGarantia">$0.00</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-3 my-3" style="border-top: 1px solid var(--border-hairline);">
+                            <span class="fw-medium text-light">Total Retenido/Pago</span>
+                            <span class="price-display fs-4" id="calcTotal">$0.00</span>
+                        </div>
+
+                        <small class="meta-mono text-muted d-block text-center" style="font-size: 0.72rem;">
+                            Recibirás un archivo iCal (.ics) para sincronizar tu agenda con Google Calendar.
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -96,6 +249,7 @@
             const select = document.getElementById('selectEquipo');
             const fechaIni = document.getElementById('fechaInicio').value;
             const fechaFin = document.getElementById('fechaFin').value;
+            if (!select) return;
             const opt = select.options[select.selectedIndex];
 
             if (!opt || !opt.dataset.precioDia || !fechaIni || !fechaFin) return;
@@ -117,6 +271,15 @@
                 document.getElementById('calcAlquiler').innerText = '$' + montoAlq.toFixed(2);
                 document.getElementById('calcGarantia').innerText = '$' + garantia.toFixed(2);
                 document.getElementById('calcTotal').innerText = '$' + total.toFixed(2);
+            }
+        }
+
+        function seleccionarEquipoParaReserva(id) {
+            const select = document.getElementById('selectEquipo');
+            if (select) {
+                select.value = id;
+                calcular();
+                document.getElementById('moduloReserva').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
