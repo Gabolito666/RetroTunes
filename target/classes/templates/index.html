@@ -4,54 +4,72 @@
 <body>
     <div th:replace="~{fragments/layout :: navbar}"></div>
 
-    <main class="container my-5 flex-grow-1">
-        <div class="p-5 mb-4 card-retro text-center rounded-4 shadow-lg border border-secondary">
-            <div class="container-fluid py-4">
-                <span class="badge bg-warning text-dark mb-3 px-3 py-2 fs-6 fw-bold">🎶 SPRINT 1 LIVE</span>
-                <h1 class="display-4 fw-bolder brand-retro mb-3">Sonido Auténtico, Espíritu Vintage</h1>
-                <p class="col-md-8 mx-auto fs-5 text-light opacity-75">
-                    Bienvenido a <strong>RetroTunes</strong>. Explora nuestra selecta colección de vinilos originales, cassettes de culto, CDs remasterizados y equipos de audio analógico gestionados con persistencia relacional en Supabase.
+    <main class="container my-5 flex-grow-1" style="max-width: 1200px;">
+        <!-- Hero Section (Calm, Acoustic, Authentic) -->
+        <section class="card-retro text-center p-4 p-md-5 mb-4">
+            <div class="py-2 py-md-4">
+                <span class="badge-signature mb-3">
+                    <i class="bi bi-disc"></i> Colección de audio analógico
+                </span>
+                <h1 class="display-5 fw-semibold mb-3 text-light" style="letter-spacing: -0.02em;">
+                    Fidelidad acústica en vinilo, cinta y valvular
+                </h1>
+                <p class="mx-auto fs-6 text-secondary" style="max-width: 640px; line-height: 1.6;">
+                    RetroTunes reúne prensados originales de 180 gramos, cassettes restaurados y equipos de sonido vintage revisados acústicamente para coleccionistas y melómanos.
                 </p>
-                <div class="d-flex justify-content-center gap-3 mt-4">
-                    <a th:href="@{/catalogo}" class="btn btn-retro-primary btn-lg px-4">
-                        <i class="bi bi-disc-fill"></i> Explorar Catálogo
+                <div class="d-flex justify-content-center align-items-center gap-3 mt-4 pt-2">
+                    <a th:href="@{/catalogo}" class="btn-retro-primary" style="min-height: 44px; padding: 10px 24px;">
+                        <i class="bi bi-collection"></i> Explorar catálogo
                     </a>
-                    <a th:if="${session.usuarioLogueado == null}" th:href="@{/registro}" class="btn btn-retro-secondary btn-lg px-4">
-                        <i class="bi bi-person-badge"></i> Únete a la Comunidad
+                    <a th:if="${session.usuarioLogueado == null}" th:href="@{/registro}" class="btn-retro-secondary" style="min-height: 44px; padding: 10px 24px;">
+                        Crear cuenta
                     </a>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="row g-4 mt-2">
+        <!-- Feature Grid (Equal Cards, Restrained Hierarchy) -->
+        <section class="row g-4 pt-2">
             <div class="col-md-4">
-                <div class="card card-retro h-100 p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-vinyl fs-1 text-warning me-3"></i>
-                        <h4 class="mb-0 text-light">Vinilos & Analógico</h4>
+                <div class="card-retro h-100 p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="brand-icon" style="font-size: 1.25rem;">
+                            <i class="bi bi-vinyl"></i>
+                        </div>
+                        <h2 class="h6 mb-0 text-light fw-medium">Vinilos & Prensados</h2>
                     </div>
-                    <p class="text-muted">Prensados originales y reediciones de colección en 180g para melómanos exigentes.</p>
+                    <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                        Ediciones originales y reediciones audiófilas prensadas en 180g con verificación de estado y ranuras limpias.
+                    </p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card card-retro h-100 p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-cassette fs-1 text-danger me-3"></i>
-                        <h4 class="mb-0 text-light">Cassettes & Cintas</h4>
+                <div class="card-retro h-100 p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="brand-icon" style="font-size: 1.25rem;">
+                            <i class="bi bi-cassette"></i>
+                        </div>
+                        <h2 class="h6 mb-0 text-light fw-medium">Cassettes & Cintas</h2>
                     </div>
-                    <p class="text-muted">Tesoros magnéticos de los 80s y 90s listos para reproducir en tu deck o Walkman.</p>
+                    <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                        Grabaciones analógicas de época en cinta magnética, revisadas y listas para reproducir en pletinas y Walkman.
+                    </p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card card-retro h-100 p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-speaker fs-1 text-info me-3"></i>
-                        <h4 class="mb-0 text-light">Equipos & Tornamesas</h4>
+                <div class="card-retro h-100 p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="brand-icon" style="font-size: 1.25rem;">
+                            <i class="bi bi-speaker"></i>
+                        </div>
+                        <h2 class="h6 mb-0 text-light fw-medium">Equipos & Tornamesas</h2>
                     </div>
-                    <p class="text-muted">Sistemas de sonido híbridos con calibración acústica, disponibles en venta y alquiler diario.</p>
+                    <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                        Sistemas de reproducción híbridos y agujas calibradas, disponibles para compra directa o alquiler temporal.
+                    </p>
                 </div>
             </div>
-        </div>
+        </section>
     </main>
 
     <div th:replace="~{fragments/layout :: footer}"></div>
