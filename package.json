@@ -1,9 +1,24 @@
 {
-    "private": true,
-    "description": "Herramientas auxiliares de captura y video para unslop",
-    "name": "retrotunes-tooling",
-    "version": "1.0.0",
-    "devDependencies": {
-        "playwright": "^1.65.1"
-    }
+  "name": "retrotunes",
+  "version": "1.0.0",
+  "description": "Esta guía contiene la especificación técnica completa, versiones exactas y los pasos necesarios para clonar, configurar y ejecutar el proyecto **RetroTunes** en cualquier otro equipo o dispositivo (Windows, macOS o Linux).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gabolito666/RetroTunes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Gabolito666/RetroTunes/issues"
+  },
+  "homepage": "https://github.com/Gabolito666/RetroTunes#readme",
+  "devDependencies": {
+    "playwright": "^1.65.1"
+  }
 }

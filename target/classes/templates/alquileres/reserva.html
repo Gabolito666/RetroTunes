@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reserva de Equipos de Sonido')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 860px;">
+        <div class="mb-4">
+            <h1 class="h3 text-light fw-medium mb-1">Reserva y Alquiler de Equipos Acústicos</h1>
+            <p class="text-secondary small mb-0">Tornamesas, amplificadores valvulares y sistemas de monitoreo de alta fidelidad.</p>
+        </div>
+
+        <div th:if="${errorAlquiler}" class="alert alert-danger py-2 mb-4" style="background: #2d1515; border-color: #5c2020; color: #fca5a5; font-size: 0.875rem;" th:text="${errorAlquiler}"></div>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card-retro p-4">
+                    <form th:action="@{/alquileres/reserva}" method="post" id="formReserva">
+                        <div class="mb-3">
+                            <label class="form-label text-light small fw-medium">Seleccionar Equipo de Sonido</label>
+                            <select name="idEquipo" id="selectEquipo" class="form-select bg-dark text-light" style="border: 1px solid var(--border-hairline); border-radius: var(--radius-control);" required>
+                                <option value="" disabled th:selected="${equipoSeleccionadoId == null}">-- Selecciona un equipo disponible --</option>
+                                <option th:each="equipo : ${equipos}" 
+                                        th:value="${equipo.id_producto}" 
+                                        th:text="${equipo.titulo} + ' ($' + ${#numbers.formatDecimal(equipo.precio_alquiler_dia, 1, 2)} + ' /día)'"
+                                        th:selected="${equipoSeleccionadoId != null and equipoSeleccionadoId == equipo.id_producto}"
+                                        th:data-precio-dia="${equipo.precio_alquiler_dia}"
+                                        th:data-precio-venta="${equipo.precio_venta}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label text-light small fw-medium">Fecha de Inicio</label>
+                                <input type="date" name="fechaInicio" id="fechaInicio" th:min="${fechaMinima}" class="input-retro" required>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label text-light small fw-medium">Fecha de Devolución</label>
+                                <input type="date" name="fechaFin" id="fechaFin" th:min="${fechaMinima}" class="input-retro" required>
+                            </div>
+                        </div>
+
+                        <!-- Políticas de Alquiler -->
+                        <div class="p-3 mb-4" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                            <span class="text-warning small fw-medium d-block mb-1">
+                                <i class="bi bi-shield-check me-1"></i> Depósito de Garantía del 30%
+                            </span>
+                            <p class="text-secondary small mb-0" style="font-size: 0.8125rem;">
+                                Se retiene el 30% del valor comercial del equipo como fianza de cuidado. Este importe se reembolsa automáticamente al devolver el equipo en óptimas condiciones.
+                            </p>
+                        </div>
+
+                        <button type="submit" class="btn-retro-primary w-100 py-2">
+                            <i class="bi bi-calendar-check me-1"></i> Confirmar Reserva
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Desglose en Tiempo Real -->
+            <div class="col-lg-5">
+                <div class="card-retro p-4 sticky-top" style="top: 80px;">
+                    <h2 class="h6 text-light fw-medium mb-3">Estimación del Alquiler</h2>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary small">Duración estimada</span>
+                        <span class="meta-mono text-light" id="calcDias">0 días</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary small">Tarifa de alquiler</span>
+                        <span class="meta-mono text-light" id="calcAlquiler">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary small">Depósito garantía (30%)</span>
+                        <span class="meta-mono text-warning" id="calcGarantia">$0.00</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between pt-3 my-3" style="border-top: 1px solid var(--border-hairline);">
+                        <span class="fw-medium text-light">Total Retenido/Pago</span>
+                        <span class="price-display fs-4" id="calcTotal">$0.00</span>
+                    </div>
+
+                    <small class="meta-mono text-muted d-block text-center" style="font-size: 0.72rem;">
+                        Recibirás un archivo iCal (.ics) para sincronizar tu agenda con Google Calendar.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <script>
+        function calcular() {
+            const select = document.getElementById('selectEquipo');
+            const fechaIni = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            const opt = select.options[select.selectedIndex];
+
+            if (!opt || !opt.dataset.precioDia || !fechaIni || !fechaFin) return;
+
+            const pDia = parseFloat(opt.dataset.precioDia);
+            const pVenta = parseFloat(opt.dataset.precioVenta);
+
+            const d1 = new Date(fechaIni);
+            const d2 = new Date(fechaFin);
+            const diffTime = d2 - d1;
+            const diffDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
+
+            if (diffDays > 0) {
+                const montoAlq = diffDays * pDia;
+                const garantia = pVenta * 0.30;
+                const total = montoAlq + garantia;
+
+                document.getElementById('calcDias').innerText = diffDays + (diffDays === 1 ? ' día' : ' días');
+                document.getElementById('calcAlquiler').innerText = '$' + montoAlq.toFixed(2);
+                document.getElementById('calcGarantia').innerText = '$' + garantia.toFixed(2);
+                document.getElementById('calcTotal').innerText = '$' + total.toFixed(2);
+            }
+        }
+
+        document.getElementById('selectEquipo').addEventListener('change', calcular);
+        document.getElementById('fechaInicio').addEventListener('change', calcular);
+        document.getElementById('fechaFin').addEventListener('change', calcular);
+        document.addEventListener('DOMContentLoaded', calcular);
+    </script>
+</body>
+</html>

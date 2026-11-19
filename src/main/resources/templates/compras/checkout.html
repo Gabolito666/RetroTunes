@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Checkout de Compra')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 860px;">
+        <div class="mb-4">
+            <h1 class="h3 text-light fw-medium mb-1">Confirmar Orden de Compra</h1>
+            <p class="text-secondary small mb-0">Verifica los detalles del despacho y selecciona tu método de pago preferido.</p>
+        </div>
+
+        <div th:if="${errorStock}" class="alert alert-danger py-2 mb-4" style="background: #2d1515; border-color: #5c2020; color: #fca5a5; font-size: 0.875rem;" th:text="${errorStock}"></div>
+
+        <form th:action="@{/compras/checkout/procesar}" method="post">
+            <div class="row g-4">
+                <!-- Información del Cliente y Método de Pago -->
+                <div class="col-lg-7">
+                    <div class="card-retro p-4 mb-4">
+                        <h2 class="h6 text-light fw-medium mb-3">1. Datos del Comprador</h2>
+                        <div class="p-3 mb-3" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                            <div class="mb-2">
+                                <span class="text-muted small d-block">Nombre completo:</span>
+                                <span class="text-light fw-medium" th:text="${usuario.nombre_completo}">Nombre</span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="text-muted small d-block">Correo de facturación:</span>
+                                <span class="meta-mono text-secondary" th:text="${usuario.correo}">correo@ejemplo.com</span>
+                            </div>
+                            <div>
+                                <span class="text-muted small d-block">Teléfono de contacto:</span>
+                                <span class="meta-mono text-secondary" th:text="${usuario.telefono != null ? usuario.telefono : 'No registrado'}">+57 300 0000000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-retro p-4">
+                        <h2 class="h6 text-light fw-medium mb-3">2. Método de Pago</h2>
+
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                                <input type="radio" name="metodoPago" value="TARJETA_CREDITO" checked class="form-check-input mt-0">
+                                <div class="flex-grow-1">
+                                    <span class="text-light fw-medium d-block">Tarjeta de Crédito / Débito</span>
+                                    <span class="text-secondary small">Visa, Mastercard, American Express</span>
+                                </div>
+                                <i class="bi bi-credit-card text-secondary fs-5"></i>
+                            </label>
+
+                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                                <input type="radio" name="metodoPago" value="PSE" class="form-check-input mt-0">
+                                <div class="flex-grow-1">
+                                    <span class="text-light fw-medium d-block">PSE - Pagos Seguros en Línea</span>
+                                    <span class="text-secondary small">Débito directo desde cuentas bancarias</span>
+                                </div>
+                                <i class="bi bi-bank text-secondary fs-5"></i>
+                            </label>
+
+                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                                <input type="radio" name="metodoPago" value="TRANSFERENCIA_BANCARIA" class="form-check-input mt-0">
+                                <div class="flex-grow-1">
+                                    <span class="text-light fw-medium d-block">Transferencia Bancaria</span>
+                                    <span class="text-secondary small">Instrucciones enviadas al correo</span>
+                                </div>
+                                <i class="bi bi-qr-code text-secondary fs-5"></i>
+                            </label>
+
+                            <label class="p-3 d-flex align-items-center gap-3 cursor-pointer" style="background: #18181a; border-radius: var(--radius-control); border: 1px solid var(--border-hairline);">
+                                <input type="radio" name="metodoPago" value="EFECTIVO_CONTRAENTREGA" class="form-check-input mt-0">
+                                <div class="flex-grow-1">
+                                    <span class="text-light fw-medium d-block">Efectivo contraentrega</span>
+                                    <span class="text-secondary small">Pago al recibir la pieza en tienda física</span>
+                                </div>
+                                <i class="bi bi-cash-stack text-secondary fs-5"></i>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de Facturación -->
+                <div class="col-lg-5">
+                    <div class="card-retro p-4 sticky-top" style="top: 80px;">
+                        <h2 class="h6 text-light fw-medium mb-3">Detalle de la Orden</h2>
+
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            <div th:each="it : ${items}" class="d-flex justify-content-between align-items-center small py-1" style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                <div>
+                                    <span class="text-light" th:text="${it.titulo}">Título</span>
+                                    <span class="meta-mono text-muted d-block" style="font-size: 0.7rem;" th:text="${it.cantidad} + ' x $' + ${#numbers.formatDecimal(it.precioUnitario, 1, 2)}">1 x $0</span>
+                                </div>
+                                <span class="meta-mono text-light" th:text="'$' + ${#numbers.formatDecimal(it.subtotal, 1, 2)}">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-3 my-3" style="border-top: 1px solid var(--border-hairline);">
+                            <span class="fw-medium text-light">Total a Pagar</span>
+                            <span class="price-display fs-4" th:text="'$' + ${#numbers.formatDecimal(total, 1, 2)}">$0.00</span>
+                        </div>
+
+                        <button type="submit" class="btn-retro-primary w-100 py-2 mb-2">
+                            <i class="bi bi-shield-lock-fill me-1"></i> Confirmar y Pagar
+                        </button>
+                        <a th:href="@{/compras/carrito}" class="btn-retro-secondary w-100 text-center d-block" style="font-size: 0.8125rem;">
+                            Modificar Carrito
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

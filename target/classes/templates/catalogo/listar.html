@@ -78,7 +78,9 @@
                     </div>
 
                     <div class="p-3 d-flex flex-column flex-grow-1">
-                        <h2 class="h6 text-light fw-medium mb-3" style="line-height: 1.4; min-height: 2.8rem;" th:text="${prod.titulo}">Título del Álbum</h2>
+                        <a th:href="@{'/catalogo/' + ${prod.id_producto}}" class="text-decoration-none">
+                            <h2 class="h6 text-light fw-medium mb-3" style="line-height: 1.4; min-height: 2.8rem;" th:text="${prod.titulo}">Título del Álbum</h2>
+                        </a>
 
                         <!-- Reproductor Spotify Integrado si existe -->
                         <div class="mb-3" th:if="${prod.spotify_album_id != null and !#strings.isEmpty(prod.spotify_album_id)}">
@@ -106,9 +108,9 @@
                                     <i class="bi" th:classappend="${prod.stock > 0 ? 'bi-check2' : 'bi-dash-circle'}"></i>
                                     <span th:text="${prod.stock > 0 ? prod.stock + ' disponibles' : 'Agotado'}">10 disponibles</span>
                                 </span>
-                                <button class="btn-retro-secondary" style="padding: 6px 12px; font-size: 0.8125rem;" th:disabled="${prod.stock == 0}">
-                                    <i class="bi bi-bag-plus"></i> Adquirir
-                                </button>
+                                <a th:href="@{'/catalogo/' + ${prod.id_producto}}" class="btn-retro-secondary" style="padding: 6px 12px; font-size: 0.8125rem;">
+                                    <i class="bi bi-eye"></i> Detalle
+                                </a>
                             </div>
                         </div>
                     </div>
