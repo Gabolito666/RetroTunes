@@ -1,87 +1,88 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Catálogo Musical')}"></head>
+<head th:replace="~{fragments/layout :: head('Catálogo')}"></head>
 <body>
     <div th:replace="~{fragments/layout :: navbar}"></div>
 
-    <main class="container my-5 flex-grow-1">
-        <!-- Encabezado y Filtros -->
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom border-secondary gap-3">
+    <main class="container my-5 flex-grow-1" style="max-width: 1200px;">
+        <!-- Encabezado y Acción Principal -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 gap-3" style="border-bottom: 1px solid var(--border-hairline);">
             <div>
-                <h1 class="h2 fw-bold brand-retro mb-1">Catálogo de Música & Equipos</h1>
-                <p class="text-muted small mb-0">Colección de grabaciones físicas analógicas y dispositivos de sonido vintage</p>
+                <h1 class="h4 fw-medium text-light mb-1">Catálogo de música y equipos</h1>
+                <p class="text-secondary small mb-0">Grabaciones físicas analógicas y dispositivos de sonido revisados</p>
             </div>
             <div th:if="${session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombre_rol == 'DISCOGRAFICA')}">
-                <a th:href="@{/catalogo/nuevo}" class="btn btn-retro-primary">
-                    <i class="bi bi-plus-lg me-1"></i> Publicar Nuevo Producto
+                <a th:href="@{/catalogo/nuevo}" class="btn-retro-primary">
+                    <i class="bi bi-plus-lg"></i> Publicar producto
                 </a>
             </div>
         </div>
 
-        <!-- Alertas -->
-        <div th:if="${mensajeExito}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <span th:text="${mensajeExito}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <!-- Alertas con tonos semánticos discretos -->
+        <div th:if="${mensajeExito}" class="alert-retro-success mb-4 d-flex align-items-center justify-content-between" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle"></i>
+                <span th:text="${mensajeExito}"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white small" data-bs-dismiss="alert" aria-label="Cerrar"></button>
         </div>
 
-        <div th:if="${param.errorPermisos}" class="alert alert-warning alert-dismissible fade show" role="alert">
-            <i class="bi bi-shield-lock-fill me-2"></i>
-            <span>Acceso denegado: Solo usuarios con rol <strong>ADMIN</strong> o <strong>DISCOGRAFICA</strong> pueden dar de alta productos.</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div th:if="${param.errorPermisos}" class="alert-retro-warning mb-4 d-flex align-items-center justify-content-between" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-shield-lock"></i>
+                <span>Acceso restringido: Solo perfiles con rol Administrador o Discográfica pueden dar de alta artículos.</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white small" data-bs-dismiss="alert" aria-label="Cerrar"></button>
         </div>
 
-        <!-- Barra de Botones de Filtro -->
-        <div class="d-flex flex-wrap gap-2 mb-4">
+        <!-- Filtros de Formato (Barra Segmentada Discreta) -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-4 p-1" style="background-color: var(--surface-deep); border-radius: var(--radius-control); border: 1px solid var(--border-hairline); width: fit-content;">
             <a th:href="@{/catalogo(formato='TODOS')}" 
-               class="btn btn-sm" 
-               th:classappend="${formatoActual == 'TODOS' ? 'btn-warning fw-bold' : 'btn-outline-secondary text-light'}">
-               <i class="bi bi-grid-fill me-1"></i> Todos
+               class="filter-tab" 
+               th:classappend="${formatoActual == 'TODOS' ? 'active' : ''}">
+               Todos
             </a>
             <a th:href="@{/catalogo(formato='VINILO')}" 
-               class="btn btn-sm" 
-               th:classappend="${formatoActual == 'VINILO' ? 'btn-warning fw-bold' : 'btn-outline-secondary text-light'}">
-               <i class="bi bi-vinyl-fill me-1"></i> Vinilos
+               class="filter-tab" 
+               th:classappend="${formatoActual == 'VINILO' ? 'active' : ''}">
+               <i class="bi bi-vinyl me-1"></i> Vinilos
             </a>
             <a th:href="@{/catalogo(formato='CASSETTE')}" 
-               class="btn btn-sm" 
-               th:classappend="${formatoActual == 'CASSETTE' ? 'btn-warning fw-bold' : 'btn-outline-secondary text-light'}">
-               <i class="bi bi-cassette-fill me-1"></i> Cassettes
+               class="filter-tab" 
+               th:classappend="${formatoActual == 'CASSETTE' ? 'active' : ''}">
+               <i class="bi bi-cassette me-1"></i> Cassettes
             </a>
             <a th:href="@{/catalogo(formato='CD')}" 
-               class="btn btn-sm" 
-               th:classappend="${formatoActual == 'CD' ? 'btn-warning fw-bold' : 'btn-outline-secondary text-light'}">
-               <i class="bi bi-disc-fill me-1"></i> CDs
+               class="filter-tab" 
+               th:classappend="${formatoActual == 'CD' ? 'active' : ''}">
+               <i class="bi bi-disc me-1"></i> CDs
             </a>
             <a th:href="@{/catalogo(formato='EQUIPO_SONIDO')}" 
-               class="btn btn-sm" 
-               th:classappend="${formatoActual == 'EQUIPO_SONIDO' ? 'btn-warning fw-bold' : 'btn-outline-secondary text-light'}">
-               <i class="bi bi-speaker-fill me-1"></i> Equipos de Sonido
+               class="filter-tab" 
+               th:classappend="${formatoActual == 'EQUIPO_SONIDO' ? 'active' : ''}">
+               <i class="bi bi-speaker me-1"></i> Equipos
             </a>
         </div>
 
-        <!-- Grid de Tarjetas de Productos -->
+        <!-- Grid de Productos (Rhythm & Balance) -->
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" th:if="${not #lists.isEmpty(productos)}">
             <div class="col" th:each="prod : ${productos}">
-                <div class="card card-retro h-100 position-relative">
-                    <!-- Insignia de Formato -->
-                    <div class="card-header card-header-retro d-flex justify-content-between align-items-center">
-                        <span class="badge" 
-                              th:classappend="${prod.formato == 'VINILO' ? 'badge-vinilo' : 
-                                              (prod.formato == 'CASSETTE' ? 'badge-cassette' : 
-                                              (prod.formato == 'CD' ? 'badge-cd' : 'badge-equipo'))}">
+                <div class="card-retro h-100 d-flex flex-column">
+                    <!-- Cabecera de la Tarjeta (Firma y SKU) -->
+                    <div class="card-header-retro d-flex justify-content-between align-items-center">
+                        <span class="badge-signature">
                             <i class="bi" th:classappend="${prod.formato == 'VINILO' ? 'bi-vinyl' : (prod.formato == 'CASSETTE' ? 'bi-cassette' : (prod.formato == 'CD' ? 'bi-disc' : 'bi-speaker'))}"></i>
                             <span th:text="${prod.formato}">VINILO</span>
                         </span>
-                        <small class="text-secondary font-monospace" th:text="${prod.sku}">SKU-000</small>
+                        <span class="meta-mono" th:text="${prod.sku}">SKU-000</span>
                     </div>
 
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title text-light fw-bold mb-3" th:text="${prod.titulo}">Título del Álbum</h5>
+                    <div class="p-3 d-flex flex-column flex-grow-1">
+                        <h2 class="h6 text-light fw-medium mb-3" style="line-height: 1.4; min-height: 2.8rem;" th:text="${prod.titulo}">Título del Álbum</h2>
 
-                        <!-- Reproductor Spotify si está presente -->
+                        <!-- Reproductor Spotify Integrado si existe -->
                         <div class="mb-3" th:if="${prod.spotify_album_id != null and !#strings.isEmpty(prod.spotify_album_id)}">
-                            <iframe style="border-radius:8px" 
+                            <iframe style="border-radius: var(--radius-control);" 
                                     th:src="'https://open.spotify.com/embed/album/' + ${prod.spotify_album_id} + '?utm_source=generator&theme=0'" 
                                     width="100%" height="80" frameBorder="0" 
                                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
@@ -89,24 +90,24 @@
                             </iframe>
                         </div>
 
-                        <!-- Precios y Stock -->
-                        <div class="mt-auto pt-3 border-top border-secondary">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted small">Venta:</span>
-                                <span class="text-warning fw-bold fs-5" th:text="'$' + ${#numbers.formatDecimal(prod.precio_venta, 1, 2)}">$0.00</span>
+                        <!-- Bloque de Precios y Disponibilidad -->
+                        <div class="mt-auto pt-3" style="border-top: 1px solid var(--border-hairline);">
+                            <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                <span class="text-secondary small">Venta</span>
+                                <span class="price-display" th:text="'$' + ${#numbers.formatDecimal(prod.precio_venta, 1, 2)}">$0.00</span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="text-muted small">Alquiler / Día:</span>
-                                <span class="text-info fw-semibold" th:text="'$' + ${#numbers.formatDecimal(prod.precio_alquiler_dia, 1, 2)} + ' /día'">$0.00 /día</span>
+                            <div class="d-flex justify-content-between align-items-baseline mb-3">
+                                <span class="text-muted small">Alquiler / día</span>
+                                <span class="price-rental" th:text="'$' + ${#numbers.formatDecimal(prod.precio_alquiler_dia, 1, 2)} + ' /d'">$0.00 /d</span>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge" th:classappend="${prod.stock > 0 ? 'bg-success' : 'bg-danger'}">
-                                    <i class="bi" th:classappend="${prod.stock > 0 ? 'bi-check2-circle' : 'bi-x-circle'}"></i>
-                                    <span th:text="${prod.stock > 0 ? prod.stock + ' en Stock' : 'Agotado'}">10 en Stock</span>
+                                <span class="meta-mono" th:classappend="${prod.stock > 0 ? 'text-secondary' : 'text-danger'}">
+                                    <i class="bi" th:classappend="${prod.stock > 0 ? 'bi-check2' : 'bi-dash-circle'}"></i>
+                                    <span th:text="${prod.stock > 0 ? prod.stock + ' disponibles' : 'Agotado'}">10 disponibles</span>
                                 </span>
-                                <button class="btn btn-sm btn-retro-secondary" th:disabled="${prod.stock == 0}">
-                                    <i class="bi bi-cart-plus"></i> Adquirir
+                                <button class="btn-retro-secondary" style="padding: 6px 12px; font-size: 0.8125rem;" th:disabled="${prod.stock == 0}">
+                                    <i class="bi bi-bag-plus"></i> Adquirir
                                 </button>
                             </div>
                         </div>
@@ -115,13 +116,15 @@
             </div>
         </div>
 
-        <!-- Estado vacío si no hay productos -->
+        <!-- Estado Vacío -->
         <div class="text-center py-5 card-retro my-4" th:if="${#lists.isEmpty(productos)}">
-            <i class="bi bi-disc text-secondary fs-1"></i>
-            <h4 class="text-light mt-3">No hay productos en esta categoría</h4>
-            <p class="text-muted">Aún no se han registrado artículos para el formato seleccionado.</p>
-            <a th:href="@{/catalogo(formato='TODOS')}" class="btn btn-retro-secondary btn-sm mt-2">
-                Ver todos los productos
+            <div class="brand-icon mx-auto mb-3" style="font-size: 2rem;">
+                <i class="bi bi-disc"></i>
+            </div>
+            <h2 class="h5 text-light fw-medium mb-1">No hay artículos en este formato</h2>
+            <p class="text-secondary small mb-3">No se han registrado piezas físicas bajo el filtro seleccionado.</p>
+            <a th:href="@{/catalogo(formato='TODOS')}" class="btn-retro-secondary" style="font-size: 0.8125rem;">
+                Ver todos los formatos
             </a>
         </div>
     </main>
