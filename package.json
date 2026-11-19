@@ -1,0 +1,9 @@
+{
+    "private": true,
+    "description": "Herramientas auxiliares de captura y video para unslop",
+    "name": "retrotunes-tooling",
+    "version": "1.0.0",
+    "devDependencies": {
+        "playwright": "^1.65.1"
+    }
+}
