@@ -5,6 +5,7 @@ services:
     plan: free
     region: oregon
     branch: main
+    autoDeploy: true
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /catalogo

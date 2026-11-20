@@ -133,12 +133,6 @@
                                     <span th:text="${prod.stock > 0 ? prod.stock + ' disponibles' : 'Agotado'}">10 disponibles</span>
                                 </span>
                                 <span class="d-flex align-items-center gap-1">
-                                    <span th:if="${prod.fecha_lanzamiento != null and !#strings.isEmpty(prod.fecha_lanzamiento)}" 
-                                          class="badge bg-dark-subtle text-light border border-secondary-subtle" 
-                                          style="font-size: 0.6875rem;" 
-                                          th:text="${#strings.length(prod.fecha_lanzamiento) >= 4 ? #strings.substring(prod.fecha_lanzamiento, 0, 4) : prod.fecha_lanzamiento}">
-                                        1973
-                                    </span>
                                     <span class="badge-signature" style="font-size: 0.6875rem;" th:text="${prod.formato}">VINILO</span>
                                 </span>
                             </div>

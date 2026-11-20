@@ -377,4 +377,39 @@ class DemoApplicationTests {
         String header = new String(pdfBytes, 0, 4, java.nio.charset.StandardCharsets.ISO_8859_1);
         assertEquals("%PDF", header, "El archivo generado debe ser un PDF válido");
     }
+
+    @Test
+    @DisplayName("Sincronización y verificación de fechas de lanzamiento en base de datos")
+    void testVerificarYCorregirFechasEnBaseDeDatos() {
+        List<ProductoMusica> productos = productoMusicaRepository.findAll();
+        com.crud_relacional.com.controlador.SpotifyClientHelper helper = new com.crud_relacional.com.controlador.SpotifyClientHelper();
+        int corregidos = 0;
+        for (ProductoMusica p : productos) {
+            String fechaActual = p.getFecha_lanzamiento();
+            boolean esPink = com.crud_relacional.com.controlador.SpotifyClientHelper.esPinkFloyd(p.getTitulo());
+            boolean erronea = fechaActual == null || fechaActual.isBlank() || ("1973-03-01".equals(fechaActual) && !esPink);
+            if (erronea) {
+                String cleanId = com.crud_relacional.com.controlador.SpotifyClientHelper.sanitizarAlbumId(p.getSpotify_album_id());
+                String fechaReal = null;
+                if (cleanId != null && !cleanId.isBlank()) {
+                    fechaReal = helper.obtenerFechaLanzamiento(cleanId);
+                }
+                if (fechaReal == null || fechaReal.isBlank() || ("1973-03-01".equals(fechaReal) && !esPink)) {
+                    String anio = com.crud_relacional.com.controlador.SpotifyClientHelper.extraerAnioDeTitulo(p.getTitulo());
+                    if (anio != null) {
+                        fechaReal = anio;
+                    }
+                }
+                if (fechaReal != null && !fechaReal.isBlank()) {
+                    p.setFecha_lanzamiento(fechaReal);
+                    productoMusicaRepository.save(p);
+                    corregidos++;
+                    System.out.println("CORREGIDO ID " + p.getId_producto() + " [" + p.getTitulo() + "] -> " + fechaReal);
+                }
+            } else {
+                System.out.println("OK ID " + p.getId_producto() + " [" + p.getTitulo() + "] -> " + fechaActual);
+            }
+        }
+        System.out.println("Total productos revisados: " + productos.size() + ", corregidos: " + corregidos);
+    }
 }
