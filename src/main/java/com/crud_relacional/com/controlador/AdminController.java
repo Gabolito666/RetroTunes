@@ -6,10 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -67,15 +65,18 @@ public class AdminController {
     private final AlquilerEquipoRepository alquilerEquipoRepository;
     private final ProductoMusicaRepository productoMusicaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final RolRepository rolRepository;
 
     public AdminController(VentaRepository ventaRepository,
                            AlquilerEquipoRepository alquilerEquipoRepository,
                            ProductoMusicaRepository productoMusicaRepository,
-                           UsuarioRepository usuarioRepository) {
+                           UsuarioRepository usuarioRepository,
+                           RolRepository rolRepository) {
         this.ventaRepository = ventaRepository;
         this.alquilerEquipoRepository = alquilerEquipoRepository;
         this.productoMusicaRepository = productoMusicaRepository;
         this.usuarioRepository = usuarioRepository;
+        this.rolRepository = rolRepository;
     }
 
     private boolean esAdmin(HttpSession session) {
@@ -104,10 +105,25 @@ public class AdminController {
         long numUsuarios = usuarioRepository.count();
         List<Venta> ultimasVentas = ventaRepository.findAll();
 
+        String formatoMasVendido = "N/A";
+        long formatoMasVendidoUds = 0;
+        if (porFormato != null && !porFormato.isEmpty()) {
+            for (Object[] row : porFormato) {
+                String f = (String) row[0];
+                if (!"EQUIPO_SONIDO".equalsIgnoreCase(f)) {
+                    formatoMasVendido = f;
+                    formatoMasVendidoUds = ((Number) row[1]).longValue();
+                    break;
+                }
+            }
+        }
+
         model.addAttribute("totalVentas", ventas);
         model.addAttribute("totalAlquileres", alquileres);
         model.addAttribute("ingresosTotales", ingresosTotales);
         model.addAttribute("ventasPorFormato", porFormato);
+        model.addAttribute("formatoMasVendido", formatoMasVendido);
+        model.addAttribute("formatoMasVendidoUds", formatoMasVendidoUds);
         model.addAttribute("alquileresActivos", activos);
         model.addAttribute("depositosCustodia", depositos);
         model.addAttribute("numProductos", numProductos);
@@ -115,6 +131,122 @@ public class AdminController {
         model.addAttribute("ultimasVentas", ultimasVentas);
 
         return "admin/dashboard";
+    }
+
+    @GetMapping("/usuarios")
+    public String listarUsuariosAdmin(@RequestParam(value = "q", required = false) String busqueda,
+                                      @RequestParam(value = "rol", required = false) String rolFiltro,
+                                      HttpSession session,
+                                      Model model) {
+        if (!esAdmin(session)) {
+            return "redirect:/login";
+        }
+
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        usuarios.sort(Comparator.comparing(Usuario::getId_usuario));
+
+        if (busqueda != null && !busqueda.isBlank()) {
+            String q = busqueda.trim().toLowerCase();
+            usuarios = usuarios.stream().filter(u ->
+                    (u.getNombre_completo() != null && u.getNombre_completo().toLowerCase().contains(q)) ||
+                    (u.getCorreo() != null && u.getCorreo().toLowerCase().contains(q)) ||
+                    (u.getTelefono() != null && u.getTelefono().toLowerCase().contains(q))
+            ).toList();
+            model.addAttribute("busqueda", busqueda.trim());
+        }
+
+        if (rolFiltro != null && !rolFiltro.isBlank() && !"TODOS".equalsIgnoreCase(rolFiltro)) {
+            usuarios = usuarios.stream().filter(u ->
+                    u.getRol() != null && rolFiltro.equalsIgnoreCase(u.getRol().getNombre_rol())
+            ).toList();
+            model.addAttribute("rolFiltro", rolFiltro.trim());
+        }
+
+        List<Rol> roles = rolRepository.findAll();
+        model.addAttribute("usuarios", usuarios);
+        model.addAttribute("roles", roles);
+        model.addAttribute("totalUsuarios", usuarios.size());
+
+        return "admin/usuarios";
+    }
+
+    @PostMapping("/usuarios/editar/{id}")
+    public String modificarUsuarioAdmin(@PathVariable("id") Long id,
+                                        @RequestParam("nombre_completo") String nombreCompleto,
+                                        @RequestParam("correo") String correo,
+                                        @RequestParam(value = "telefono", required = false) String telefono,
+                                        @RequestParam("id_rol") Long idRol,
+                                        @RequestParam(value = "activo", defaultValue = "false") boolean activo,
+                                        HttpSession session,
+                                        RedirectAttributes redirectAttributes) {
+        if (!esAdmin(session)) {
+            return "redirect:/login";
+        }
+
+        Optional<Usuario> opt = usuarioRepository.findById(id);
+        if (opt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Usuario no encontrado.");
+            return "redirect:/admin/usuarios";
+        }
+
+        Usuario usuario = opt.get();
+
+        // Validaciones Jakarta Validation
+        if (nombreCompleto == null || nombreCompleto.trim().isBlank()) {
+            redirectAttributes.addFlashAttribute("error", "El nombre completo es obligatorio.");
+            return "redirect:/admin/usuarios";
+        }
+
+        if (correo == null || correo.trim().isBlank() || !correo.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            redirectAttributes.addFlashAttribute("error", "El formato de correo electrónico no es válido.");
+            return "redirect:/admin/usuarios";
+        }
+
+        // Verificar que el correo no esté tomado por otro usuario
+        Optional<Usuario> usuarioConMismoCorreo = usuarioRepository.findByCorreo(correo.trim());
+        if (usuarioConMismoCorreo.isPresent() && !usuarioConMismoCorreo.get().getId_usuario().equals(id)) {
+            redirectAttributes.addFlashAttribute("error", "El correo ya se encuentra registrado por otro usuario.");
+            return "redirect:/admin/usuarios";
+        }
+
+        Optional<Rol> rolOpt = rolRepository.findById(idRol);
+        if (rolOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "El rol seleccionado no es válido.");
+            return "redirect:/admin/usuarios";
+        }
+
+        // Actualización directa de la tabla usuarios vía UsuarioRepository
+        usuario.setNombre_completo(nombreCompleto.trim());
+        usuario.setCorreo(correo.trim());
+        usuario.setTelefono(telefono != null ? telefono.trim() : null);
+        usuario.setActivo(activo);
+        usuario.setRol(rolOpt.get());
+
+        usuarioRepository.save(usuario);
+
+        redirectAttributes.addFlashAttribute("mensajeExito",
+                "Usuario " + usuario.getCorreo() + " actualizado correctamente.");
+        return "redirect:/admin/usuarios";
+    }
+
+    @PostMapping("/usuarios/toggle-estado/{id}")
+    public String cambiarEstadoUsuarioAdmin(@PathVariable("id") Long id,
+                                           HttpSession session,
+                                           RedirectAttributes redirectAttributes) {
+        if (!esAdmin(session)) {
+            return "redirect:/login";
+        }
+
+        Optional<Usuario> opt = usuarioRepository.findById(id);
+        if (opt.isPresent()) {
+            Usuario usuario = opt.get();
+            boolean nuevoEstado = usuario.getActivo() == null || !usuario.getActivo();
+            usuario.setActivo(nuevoEstado);
+            usuarioRepository.save(usuario);
+            redirectAttributes.addFlashAttribute("mensajeExito",
+                    "Estado de " + usuario.getCorreo() + " cambiado a " + (nuevoEstado ? "ACTIVO" : "INACTIVO") + ".");
+        }
+        return "redirect:/admin/usuarios";
     }
 
     @GetMapping("/facturas")

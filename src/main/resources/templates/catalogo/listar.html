@@ -64,6 +64,38 @@
             </a>
         </div>
 
+        <!-- Barra de Búsqueda y Filtrado Dinámico JPQL (Formato, Artista, Rango de Precios) -->
+        <div class="card-retro p-3 mb-4">
+            <form th:action="@{/catalogo}" method="get" class="row g-2 align-items-center">
+                <input type="hidden" name="formato" th:value="${formatoActual}">
+                <div class="col-md-5">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                        <input type="text" name="artista" class="form-control bg-dark border-secondary text-light" 
+                               placeholder="Buscar por artista o título..." th:value="${artistaFiltro}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-dark border-secondary text-secondary">$ Min</span>
+                        <input type="number" step="0.01" min="0" name="precioMin" class="form-control bg-dark border-secondary text-light text-end" 
+                               placeholder="0.00" th:value="${precioMinFiltro}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-dark border-secondary text-secondary">$ Max</span>
+                        <input type="number" step="0.01" min="0" name="precioMax" class="form-control bg-dark border-secondary text-light text-end" 
+                               placeholder="999.00" th:value="${precioMaxFiltro}">
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn-retro-primary btn-sm flex-grow-1"><i class="bi bi-funnel me-1"></i> Filtrar Catálogo</button>
+                    <a th:href="@{/catalogo(formato=${formatoActual})}" class="btn-retro-secondary btn-sm" title="Restablecer filtros"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </form>
+        </div>
+
         <!-- Grid de Productos (Rhythm & Balance) -->
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" th:if="${not #lists.isEmpty(productos)}">
             <div class="col" th:each="prod : ${productos}">

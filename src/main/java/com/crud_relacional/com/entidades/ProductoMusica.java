@@ -55,10 +55,20 @@ public class ProductoMusica implements Serializable {
     @Column(name = "fecha_lanzamiento", length = 50, nullable = true)
     private String fecha_lanzamiento;
 
+    @Column(name = "estado", length = 50, nullable = true)
+    private String estado = "ACTIVO"; // ACTIVO, PENDIENTE_APROBACION, RECHAZADO
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_artista", nullable = true)
+    private ArtistaEmpresa artista;
+
     @PrePersist
     public void prePersist() {
         if (this.sku == null || this.sku.isBlank()) {
             this.sku = generarSkuAutomatico(this.formato);
+        }
+        if (this.estado == null || this.estado.isBlank()) {
+            this.estado = "ACTIVO";
         }
     }
 
@@ -212,5 +222,25 @@ public class ProductoMusica implements Serializable {
 
     public void setFechaLanzamiento(String fechaLanzamiento) {
         this.fecha_lanzamiento = fechaLanzamiento;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public ArtistaEmpresa getArtista() {
+        return artista;
+    }
+
+    public void setArtista(ArtistaEmpresa artista) {
+        this.artista = artista;
+    }
+
+    public Long getId_artista() {
+        return artista != null ? artista.getId_entidad() : null;
     }
 }

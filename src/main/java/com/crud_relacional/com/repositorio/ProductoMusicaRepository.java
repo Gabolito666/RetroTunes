@@ -6,11 +6,25 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ProductoMusicaRepository extends JpaRepository<ProductoMusica, Long> {
+
+    @Query("SELECT p FROM ProductoMusica p WHERE " +
+           "((:formato IS NULL OR :formato = '' OR :formato = 'TODOS') AND p.formato IN ('VINILO', 'CASSETTE', 'CD') OR p.formato = :formato) AND " +
+           "(:artista IS NULL OR :artista = '' OR LOWER(p.titulo) LIKE LOWER(CONCAT('%', :artista, '%'))) AND " +
+           "(:precioMin IS NULL OR p.precio_venta >= :precioMin) AND " +
+           "(:precioMax IS NULL OR p.precio_venta <= :precioMax) " +
+           "ORDER BY p.id_producto ASC")
+    List<ProductoMusica> buscarDinamico(
+            @Param("formato") String formato,
+            @Param("artista") String artista,
+            @Param("precioMin") BigDecimal precioMin,
+            @Param("precioMax") BigDecimal precioMax
+    );
 
     @Query("SELECT p FROM ProductoMusica p WHERE p.formato = :formato ORDER BY p.id_producto ASC")
     List<ProductoMusica> findByFormato(@Param("formato") String formato);
@@ -29,4 +43,6 @@ public interface ProductoMusicaRepository extends JpaRepository<ProductoMusica, 
     Optional<ProductoMusica> findByTitulo(String titulo);
 
     List<ProductoMusica> findByTituloContainingIgnoreCase(String query);
+
+    List<ProductoMusica> findByArtista(com.crud_relacional.com.entidades.ArtistaEmpresa artista);
 }

@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS public.productos_musica (
 ALTER TABLE public.productos_musica ADD COLUMN IF NOT EXISTS imagen_url VARCHAR(500);
 ALTER TABLE public.productos_musica ADD COLUMN IF NOT EXISTS animated_artwork_url VARCHAR(500);
 ALTER TABLE public.productos_musica ADD COLUMN IF NOT EXISTS fecha_lanzamiento VARCHAR(50);
+ALTER TABLE public.productos_musica ADD COLUMN IF NOT EXISTS estado VARCHAR(50) DEFAULT 'ACTIVO';
+ALTER TABLE public.productos_musica ADD COLUMN IF NOT EXISTS id_artista BIGINT REFERENCES public.artistas_empresas(id_entidad);
 
 -- ==============================================================================
 -- ÍNDICES B-TREE Y PARCIALES DE ALTO RENDIMIENTO

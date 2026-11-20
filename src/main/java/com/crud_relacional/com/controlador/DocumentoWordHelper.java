@@ -100,6 +100,104 @@ public class DocumentoWordHelper {
         }
     }
 
+    public static byte[] generarEstadoDeCuentaWord(Usuario artista, 
+                                                   java.util.List<com.crud_relacional.com.entidades.Venta> ventas, 
+                                                   BigDecimal totalVentas, 
+                                                   BigDecimal totalRegalias) throws Exception {
+        try (XWPFDocument doc = new XWPFDocument(); ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            // Membrete Oficial RetroTunes
+            XWPFParagraph header = doc.createParagraph();
+            header.setAlignment(ParagraphAlignment.CENTER);
+            XWPFRun rHeader = header.createRun();
+            rHeader.setText("RETROTUNES ARCHIVO ANALÓGICO & DISTRIBUCIÓN MUSICAL");
+            rHeader.setBold(true);
+            rHeader.setFontSize(16);
+            rHeader.setFontFamily("Arial");
+            rHeader.setColor("222222");
+
+            XWPFParagraph subHeader = doc.createParagraph();
+            subHeader.setAlignment(ParagraphAlignment.CENTER);
+            XWPFRun rSub = subHeader.createRun();
+            rSub.setText("ESTADO DE CUENTA OFICIAL DE VENTAS FÍSICAS Y REGALÍAS");
+            rSub.setBold(true);
+            rSub.setFontSize(12);
+            rSub.setColor("555555");
+            subHeader.setSpacingAfter(300);
+
+            // Información del Beneficiario
+            agregarParrafo(doc, "FECHA DE EMISIÓN: " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            agregarParrafo(doc, "ARTISTA / TITULAR: " + artista.getNombre_completo() + " (" + artista.getCorreo() + ")");
+            agregarParrafo(doc, "ENTIDAD REGISTRADA: " + (artista.getRol() != null ? artista.getRol().getNombre_rol() : "ARTISTA"));
+            agregarParrafo(doc, "MODELO DE DISTRIBUCIÓN: 70% Regalía Neta Creador / 30% Custodia y Tienda RetroTunes");
+
+            // Tabla de Desglose de Ventas Físicas
+            XWPFTable table = doc.createTable();
+            table.setWidth("100%");
+
+            // Fila de encabezado
+            XWPFTableRow headerRow = table.getRow(0);
+            headerRow.getCell(0).setText("Fecha");
+            headerRow.addNewTableCell().setText("Factura");
+            headerRow.addNewTableCell().setText("Artículos / Formatos");
+            headerRow.addNewTableCell().setText("Uds");
+            headerRow.addNewTableCell().setText("Total Venta");
+            headerRow.addNewTableCell().setText("Regalía (70%)");
+
+            int totalUnidades = 0;
+            if (ventas != null) {
+                for (com.crud_relacional.com.entidades.Venta v : ventas) {
+                    XWPFTableRow row = table.createRow();
+                    row.getCell(0).setText(v.getFecha_hora() != null ? v.getFecha_hora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "-");
+                    row.getCell(1).setText(v.getCodigo_factura() != null ? v.getCodigo_factura() : "-");
+
+                    StringBuilder articulos = new StringBuilder();
+                    int cantVenta = 0;
+                    if (v.getDetalles() != null) {
+                        for (com.crud_relacional.com.entidades.DetalleVenta d : v.getDetalles()) {
+                            if (d.getProducto() != null) {
+                                articulos.append(d.getProducto().getTitulo()).append(" (").append(d.getProducto().getFormato()).append("), ");
+                            }
+                            cantVenta += d.getCantidad();
+                        }
+                    }
+                    totalUnidades += cantVenta;
+
+                    String artStr = articulos.toString();
+                    if (artStr.endsWith(", ")) artStr = artStr.substring(0, artStr.length() - 2);
+                    row.getCell(2).setText(artStr.isEmpty() ? "Música Analógica" : artStr);
+                    row.getCell(3).setText(String.valueOf(cantVenta));
+
+                    BigDecimal montoVenta = v.getMonto_total() != null ? v.getMonto_total() : BigDecimal.ZERO;
+                    BigDecimal regaliaVenta = montoVenta.multiply(new BigDecimal("0.70")).setScale(2, java.math.RoundingMode.HALF_UP);
+
+                    row.getCell(4).setText("$" + montoVenta.setScale(2));
+                    row.getCell(5).setText("$" + regaliaVenta.setScale(2));
+                }
+            }
+
+            // Resumen Financiero
+            XWPFParagraph pResumen = doc.createParagraph();
+            pResumen.setSpacingBefore(300);
+            agregarParrafo(doc, "TOTAL DE PIEZAS FÍSICAS VENDIDAS: " + totalUnidades + " unidades");
+            agregarParrafo(doc, "RECAUDACIÓN BRUTA TOTAL: $" + totalVentas.setScale(2) + " COP/USD");
+            agregarParrafo(doc, "COMISIÓN ADMINISTRATIVA Y LOGÍSTICA (30%): $" + totalVentas.subtract(totalRegalias).setScale(2) + " COP/USD");
+            agregarParrafo(doc, "TOTAL NETO A LIQUIDAR AL ARTISTA (70%): $" + totalRegalias.setScale(2) + " COP/USD");
+
+            // Firmas Oficiales
+            XWPFParagraph pFirmas = doc.createParagraph();
+            pFirmas.setSpacingBefore(700);
+            XWPFRun rF = pFirmas.createRun();
+            rF.setText("_____________________________                  _____________________________\n"
+                     + "GERENCIA COMERCIAL RETROTUNES                  FIRMA DEL ARTISTA / APODERADO\n"
+                     + "NIT: 900.876.543-1                             ID: " + artista.getId_usuario());
+            rF.setFontSize(10);
+
+            doc.write(baos);
+            return baos.toByteArray();
+        }
+    }
+
     private static void agregarParrafo(XWPFDocument doc, String texto) {
         XWPFParagraph p = doc.createParagraph();
         p.setSpacingAfter(200);

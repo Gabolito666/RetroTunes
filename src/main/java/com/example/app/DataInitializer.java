@@ -53,15 +53,19 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void inicializarRolesYAdmin() {
-        if (rolRepository.count() == 0) {
-            log.info("Inicializando roles del sistema en Supabase PostgreSQL...");
-            rolRepository.saveAll(Arrays.asList(
-                    new Rol("ADMIN"),
-                    new Rol("CLIENTE"),
-                    new Rol("ARTISTA"),
-                    new Rol("DISCOGRAFICA"),
-                    new Rol("TECNICO_OPERACIONES")
-            ));
+        List<String> rolesRequeridos = Arrays.asList(
+                Rol.ROLE_ADMIN,
+                Rol.ROLE_CLIENTE,
+                Rol.ROLE_ARTISTA,
+                Rol.ROLE_DISCOGRAFICA,
+                Rol.ROLE_TECNICO_OPERACIONES
+        );
+
+        for (String nombreRol : rolesRequeridos) {
+            if (rolRepository.findByNombre_rol(nombreRol).isEmpty()) {
+                rolRepository.save(new Rol(nombreRol));
+                log.info("Rol verificado y creado en el sistema: {}", nombreRol);
+            }
         }
 
         if (!usuarioRepository.existsByCorreo("admin@retrotunes.com")) {

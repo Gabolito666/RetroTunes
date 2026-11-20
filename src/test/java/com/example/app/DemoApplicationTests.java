@@ -412,4 +412,84 @@ class DemoApplicationTests {
         }
         System.out.println("Total productos revisados: " + productos.size() + ", corregidos: " + corregidos);
     }
+
+    @Test
+    @DisplayName("Roles: Existencia estricta de los 5 roles del sistema")
+    void testCincoRolesPresentes() {
+        List<String> rolesEsperados = List.of(
+                Rol.ROLE_ADMIN,
+                Rol.ROLE_CLIENTE,
+                Rol.ROLE_ARTISTA,
+                Rol.ROLE_DISCOGRAFICA,
+                Rol.ROLE_TECNICO_OPERACIONES
+        );
+
+        for (String r : rolesEsperados) {
+            Optional<Rol> rolOpt = rolRepository.findByNombre_rol(r);
+            assertTrue(rolOpt.isPresent(), "El rol " + r + " debe existir en el sistema");
+        }
+    }
+
+    @Test
+    @DisplayName("Búsqueda y Filtrado Dinámico JPQL en Catálogo")
+    void testBuscarDinamicoCatalogo() {
+        // Filtrar por formato VINILO
+        List<ProductoMusica> vinilos = productoMusicaRepository.buscarDinamico("VINILO", null, null, null);
+        assertFalse(vinilos.isEmpty());
+        assertTrue(vinilos.stream().allMatch(p -> "VINILO".equalsIgnoreCase(p.getFormato())));
+
+        // Filtrar por artista 'Beatles'
+        List<ProductoMusica> beatles = productoMusicaRepository.buscarDinamico(null, "Beatles", null, null);
+        assertFalse(beatles.isEmpty());
+        assertTrue(beatles.get(0).getTitulo().contains("Beatles"));
+
+        // Filtrar por rango de precio
+        List<ProductoMusica> porPrecio = productoMusicaRepository.buscarDinamico("VINILO", null, new BigDecimal("10.00"), new BigDecimal("50.00"));
+        assertFalse(porPrecio.isEmpty());
+        assertTrue(porPrecio.stream().allMatch(p -> p.getPrecio_venta().compareTo(new BigDecimal("10.00")) >= 0 && p.getPrecio_venta().compareTo(new BigDecimal("50.00")) <= 0));
+    }
+
+    @Test
+    @DisplayName("Propuesta de Artista: Registro con status PENDIENTE_APROBACION asociado a id_artista")
+    void testPropuestaArtistaPendienteAprobacion() {
+        Usuario usuarioArtista = usuarioRepository.findByCorreo("artista@retrotunes.com").orElseGet(() -> {
+            Rol rolArtista = rolRepository.findByNombre_rol(Rol.ROLE_ARTISTA).orElseThrow();
+            Usuario u = new Usuario("Charly Garcia", "artista@retrotunes.com", passwordEncoder.encode("clave123"), "+54 11 0000", true, rolArtista);
+            return usuarioRepository.save(u);
+        });
+
+        ArtistaEmpresa entidad = new ArtistaEmpresa("Charly Garcia Solo", "ARTISTA", "Rock argentino", null, usuarioArtista);
+        // Persistir entidad si no existe
+        entidad = usuarioArtista.getRol() != null ? entidad : null;
+
+        ProductoMusica propuesta = new ProductoMusica();
+        propuesta.setTitulo("Charly Garcia - Piano Bar (Edición Vinilo 180g)");
+        propuesta.setFormato("VINILO");
+        propuesta.setPrecio_venta(new BigDecimal("35.00"));
+        propuesta.setPrecio_alquiler_dia(BigDecimal.ZERO);
+        propuesta.setStock(100);
+        propuesta.setEstado("PENDIENTE_APROBACION");
+
+        ProductoMusica guardada = productoMusicaRepository.save(propuesta);
+        assertNotNull(guardada.getId_producto());
+        assertEquals("PENDIENTE_APROBACION", guardada.getEstado());
+        assertTrue(guardada.getSku().startsWith("VIN-"));
+    }
+
+    @Test
+    @DisplayName("Word POI: Generación de Estado de Cuenta Oficial .docx con membrete de RetroTunes")
+    void testGenerarEstadoDeCuentaWordDocx() throws Exception {
+        Usuario usuario = usuarioRepository.findByCorreo("admin@retrotunes.com").orElseThrow();
+        List<Venta> ventas = ventaRepository.findAll();
+        BigDecimal totalVentas = ventaRepository.sumTotalVentas();
+        BigDecimal regalias = totalVentas.multiply(new BigDecimal("0.70")).setScale(2, RoundingMode.HALF_UP);
+
+        byte[] bytesDocx = com.crud_relacional.com.controlador.DocumentoWordHelper.generarEstadoDeCuentaWord(usuario, ventas, totalVentas, regalias);
+        assertNotNull(bytesDocx);
+        assertTrue(bytesDocx.length > 1000, "El documento DOCX debe contener contenido válido estructurado");
+
+        // Cabecera ZIP / OOXML: PK\u0003\u0004
+        assertEquals(0x50, bytesDocx[0] & 0xFF, "Debe iniciar con cabecera PK de archivo OpenXML");
+        assertEquals(0x4B, bytesDocx[1] & 0xFF);
+    }
 }

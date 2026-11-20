@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,6 +37,9 @@ public class CatalogoController {
 
     @GetMapping
     public String listar(@RequestParam(value = "formato", required = false, defaultValue = "TODOS") String formato,
+                         @RequestParam(value = "artista", required = false) String artista,
+                         @RequestParam(value = "precioMin", required = false) BigDecimal precioMin,
+                         @RequestParam(value = "precioMax", required = false) BigDecimal precioMax,
                          @RequestParam(value = "creado", required = false) String creado,
                          @RequestParam(value = "eliminado", required = false) String eliminado,
                          @RequestParam(value = "compraExitosa", required = false) String compraExitosa,
@@ -43,30 +47,39 @@ public class CatalogoController {
                          Model model) {
         List<ProductoMusica> productos;
         String fmt = formato != null ? formato.trim().toUpperCase() : "TODOS";
+        boolean tieneFiltroDinamico = (artista != null && !artista.isBlank()) || precioMin != null || precioMax != null;
 
-        switch (fmt) {
-            case "VINILO":
-                productos = productoMusicaRepository.findByFormato("VINILO");
-                break;
-            case "CASSETTE":
-                productos = productoMusicaRepository.findByFormato("CASSETTE");
-                break;
-            case "CD":
-                productos = productoMusicaRepository.findByFormato("CD");
-                break;
-            case "EQUIPO_SONIDO":
-                productos = productoMusicaRepository.findSoloEquipos();
-                break;
-            default:
-                // SEPARACIÓN ESTRICTA: Exclusivamente formatos físicos de música (VINILO, CASSETTE, CD).
-                // Queda estrictamente prohibido mostrar equipos de sonido en el menú del catálogo.
-                productos = productoMusicaRepository.findSoloMusica();
-                fmt = "TODOS";
-                break;
+        if (tieneFiltroDinamico) {
+            String filtroArtista = (artista != null && !artista.isBlank()) ? artista.trim() : null;
+            productos = productoMusicaRepository.buscarDinamico(fmt, filtroArtista, precioMin, precioMax);
+        } else {
+            switch (fmt) {
+                case "VINILO":
+                    productos = productoMusicaRepository.findByFormato("VINILO");
+                    break;
+                case "CASSETTE":
+                    productos = productoMusicaRepository.findByFormato("CASSETTE");
+                    break;
+                case "CD":
+                    productos = productoMusicaRepository.findByFormato("CD");
+                    break;
+                case "EQUIPO_SONIDO":
+                    productos = productoMusicaRepository.findSoloEquipos();
+                    break;
+                default:
+                    // SEPARACIÓN ESTRICTA: Exclusivamente formatos físicos de música (VINILO, CASSETTE, CD).
+                    // Queda estrictamente prohibido mostrar equipos de sonido en el menú del catálogo.
+                    productos = productoMusicaRepository.findSoloMusica();
+                    fmt = "TODOS";
+                    break;
+            }
         }
 
         model.addAttribute("productos", productos);
         model.addAttribute("formatoActual", fmt);
+        model.addAttribute("artistaFiltro", artista);
+        model.addAttribute("precioMinFiltro", precioMin);
+        model.addAttribute("precioMaxFiltro", precioMax);
         if (creado != null) {
             model.addAttribute("mensajeExito", "Producto musical publicado exitosamente en el catálogo.");
         }
@@ -84,28 +97,28 @@ public class CatalogoController {
     public String listarVinilos(@RequestParam(value = "creado", required = false) String creado,
                                 @RequestParam(value = "eliminado", required = false) String eliminado,
                                 Model model) {
-        return listar("VINILO", creado, eliminado, null, null, model);
+        return listar("VINILO", null, null, null, creado, eliminado, null, null, model);
     }
 
     @GetMapping("/cassettes")
     public String listarCassettes(@RequestParam(value = "creado", required = false) String creado,
                                   @RequestParam(value = "eliminado", required = false) String eliminado,
                                   Model model) {
-        return listar("CASSETTE", creado, eliminado, null, null, model);
+        return listar("CASSETTE", null, null, null, creado, eliminado, null, null, model);
     }
 
     @GetMapping("/cds")
     public String listarCds(@RequestParam(value = "creado", required = false) String creado,
                             @RequestParam(value = "eliminado", required = false) String eliminado,
                             Model model) {
-        return listar("CD", creado, eliminado, null, null, model);
+        return listar("CD", null, null, null, creado, eliminado, null, null, model);
     }
 
     @GetMapping("/equipos")
     public String listarEquipos(@RequestParam(value = "creado", required = false) String creado,
                                 @RequestParam(value = "eliminado", required = false) String eliminado,
                                 Model model) {
-        return listar("EQUIPO_SONIDO", creado, eliminado, null, null, model);
+        return listar("EQUIPO_SONIDO", null, null, null, creado, eliminado, null, null, model);
     }
 
     @GetMapping({"/detalle/{id}", "/{id}"})

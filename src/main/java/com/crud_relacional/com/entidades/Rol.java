@@ -8,6 +8,12 @@ import java.io.Serializable;
 @Table(name = "roles")
 public class Rol implements Serializable {
 
+    public static final String ROLE_ADMIN = "ADMIN";
+    public static final String ROLE_CLIENTE = "CLIENTE";
+    public static final String ROLE_ARTISTA = "ARTISTA";
+    public static final String ROLE_DISCOGRAFICA = "DISCOGRAFICA";
+    public static final String ROLE_TECNICO_OPERACIONES = "TECNICO_OPERACIONES";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_rol")
