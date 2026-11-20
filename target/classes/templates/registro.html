@@ -23,7 +23,7 @@
                             <span class="input-group-text-retro"><i class="bi bi-person"></i></span>
                             <input type="text" id="nombre_completo" th:field="*{nombre_completo}" 
                                    class="form-control form-control-retro" th:errorclass="is-invalid" 
-                                   placeholder="Ej: Miles Davis" required>
+                                   placeholder="Ej: Juanito Alcachofa" required>
                         </div>
                         <div class="text-danger small mt-1" th:if="${#fields.hasErrors('nombre_completo')}" th:errors="*{nombre_completo}"></div>
                     </div>
@@ -35,7 +35,7 @@
                             <span class="input-group-text-retro"><i class="bi bi-envelope"></i></span>
                             <input type="email" id="correo" th:field="*{correo}" 
                                    class="form-control form-control-retro" th:errorclass="is-invalid" 
-                                   placeholder="nombre@correo.com" required>
+                                   placeholder="JuanitoAlcachofa@correo.com" required>
                         </div>
                         <div class="text-danger small mt-1" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
                     </div>
