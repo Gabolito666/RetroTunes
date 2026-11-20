@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Submenú 3: Top Clientes Compradores')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 1140px;">
+        <!-- Encabezado del Módulo de Reportes -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 gap-3" style="border-bottom: 1px solid var(--border-hairline);">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-info text-dark"><i class="bi bi-shield-check me-1"></i> PANEL ADMINISTRADOR</span>
+                    <h1 class="h4 text-light fw-medium mb-0">Centro de Reportes y Auditoría</h1>
+                </div>
+                <p class="text-secondary small mb-0">Supervisión contable, control de inventario, métricas de clientes y gestión de alquileres universales.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/reportes/excel(tipo='ventas-usuario')}" class="btn-retro-secondary btn-sm" title="Descargar Excel Top Clientes">
+                    <i class="bi bi-file-earmark-excel text-success me-1"></i> Exportar Clientes (.xlsx)
+                </a>
+                <a th:href="@{/admin/reportes/pdf(tipo='ventas-usuario')}" target="_blank" class="btn-retro-secondary btn-sm" title="Descargar PDF">
+                    <i class="bi bi-file-earmark-pdf text-danger me-1"></i> PDF
+                </a>
+                <a th:href="@{/admin/dashboard}" class="btn-retro-secondary btn-sm">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- PESTAÑAS / SUBMENÚS DE REPORTES ADMIN -->
+        <ul class="nav nav-pills mb-4 gap-2 p-2 rounded" style="background: rgba(18, 18, 20, 0.9); border: 1px solid var(--border-hairline);">
+            <li class="nav-item">
+                <a class="nav-link text-secondary fw-medium" th:href="@{/admin/reportes/calendario}">
+                    <i class="bi bi-calendar3-range me-1 text-warning"></i> 1. Calendario de Préstamos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary fw-medium" th:href="@{/admin/reportes/inventario}">
+                    <i class="bi bi-boxes me-1 text-info"></i> 2. Control de Inventario
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active fw-medium" th:href="@{/admin/reportes/top-clientes}">
+                    <i class="bi bi-trophy me-1 text-warning"></i> 3. Top Clientes Compradores
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary fw-medium" th:href="@{/admin/reportes/compras}">
+                    <i class="bi bi-receipt-cutoff me-1 text-success"></i> 4. Historial Detallado Compras
+                </a>
+            </li>
+        </ul>
+
+        <!-- KPI CARDS: Resumen del Ranking Comercial -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-4">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Clientes Compradores</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-light fw-bold" th:text="${totalClientesCompradores}">0</span>
+                        <span class="meta-mono text-muted small">cuentas activas</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Volumen Total Facturado</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-success fw-bold price-display" th:text="'$' + ${#numbers.formatDecimal(volumenTotalGenerado, 1, 2)}">$0.00</span>
+                        <span class="meta-mono text-success small"><i class="bi bi-arrow-up-right"></i> total</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Piezas / Ítems Vendidos</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-warning fw-bold" th:text="${totalItemsVendidos}">0</span>
+                        <span class="meta-mono text-warning small"><i class="bi bi-disc"></i> unidades</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA PRINCIPAL DE RANKING JPQL DE TOP CLIENTES -->
+        <div class="card-retro p-4 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+                <div>
+                    <h2 class="h5 text-light fw-medium mb-1">
+                        <i class="bi bi-award text-warning me-2"></i>Ranking de Clientes por Volumen de Compras e Ingresos (JPQL)
+                    </h2>
+                    <p class="text-secondary small mb-0">Listado jerárquico clasificado por facturación histórica, con desglose expandible de formatos y productos preferidos.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-retro mb-0" style="background: transparent; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th style="width: 50px;" class="text-center">#</th>
+                            <th>Cliente</th>
+                            <th>Contacto</th>
+                            <th class="text-center">Órdenes</th>
+                            <th class="text-center">Unidades</th>
+                            <th class="text-end">Total Facturado</th>
+                            <th>Formato Preferido</th>
+                            <th class="text-center" style="width: 120px;">Desglose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(ranking)}">
+                            <td colspan="8" class="text-center py-4 text-muted small">No hay transacciones registradas para calcular el ranking de clientes.</td>
+                        </tr>
+
+                        <th:block th:each="c : ${ranking}">
+                            <!-- Fila Principal del Cliente en el Ranking -->
+                            <tr style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
+                                <td class="text-center">
+                                    <span th:if="${c.posicion == 1}" class="badge bg-warning text-dark fw-bold fs-6" title="Top 1 Comprador">🥇 1</span>
+                                    <span th:if="${c.posicion == 2}" class="badge bg-secondary text-light fw-bold" title="Top 2 Comprador">🥈 2</span>
+                                    <span th:if="${c.posicion == 3}" class="badge text-dark fw-bold" style="background: #cd7f32;" title="Top 3 Comprador">🥉 3</span>
+                                    <span th:if="${c.posicion > 3}" class="meta-mono text-muted" th:text="${c.posicion}">4</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar-circle" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-weight: bold; font-size: 0.8125rem;"
+                                             th:text="${#strings.substring(c.nombreCliente, 0, 1)}">U</div>
+                                        <div>
+                                            <span class="text-light fw-medium d-block" th:text="${c.nombreCliente}">Nombre</span>
+                                            <span class="meta-mono text-muted small" th:text="'ID Usuario: #' + ${c.idUsuario}">#1</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="meta-mono text-secondary small d-block" th:text="${c.correo}">correo@ejemplo.com</span>
+                                    <span class="meta-mono text-muted small" th:text="${c.telefono}">+57 300 000</span>
+                                </td>
+                                <td class="text-center meta-mono text-light" th:text="${c.totalFacturas} + ' pedidos'">0 pedidos</td>
+                                <td class="text-center meta-mono text-info fw-medium" th:text="${c.totalItems} + ' uds'">0 uds</td>
+                                <td class="text-end meta-mono price-display fw-bold" th:text="'$' + ${#numbers.formatDecimal(c.totalGastado, 1, 2)}">$0.00</td>
+                                <td>
+                                    <span class="badge bg-dark border border-secondary text-warning small" th:text="${c.formatoFavorito}">VINILO (5 uds)</span>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn-retro-secondary btn-sm py-1 px-2" 
+                                            type="button" 
+                                            data-bs-toggle="collapse" 
+                                            th:attr="data-bs-target='#detalleCliente-' + ${c.idUsuario}">
+                                        <i class="bi bi-chevron-down me-1"></i> Detalle
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Panel Expandible de Desglose de Formatos y Productos -->
+                            <tr class="p-0">
+                                <td colspan="8" class="p-0 border-0">
+                                    <div class="collapse" th:id="'detalleCliente-' + ${c.idUsuario}">
+                                        <div class="p-3 my-2 mx-2 mx-md-3 rounded" style="background: rgba(18, 22, 31, 0.95); border: 1px dashed var(--border-hairline);">
+                                            <!-- Desglose por Formatos Físicos -->
+                                            <div class="mb-3">
+                                                <h6 class="text-info small fw-bold mb-2">
+                                                    <i class="bi bi-pie-chart-fill me-1"></i> Desglose de Formatos Físicos Adquiridos:
+                                                </h6>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <span class="badge bg-dark border border-info text-light px-3 py-2">
+                                                        <i class="bi bi-vinyl text-info me-1"></i> Vinilos: <strong class="text-info" th:text="${c.formatosDesglose['VINILO'] != null ? c.formatosDesglose['VINILO'] : 0}">0</strong>
+                                                    </span>
+                                                    <span class="badge bg-dark border border-warning text-light px-3 py-2">
+                                                        <i class="bi bi-cassette text-warning me-1"></i> Cassettes: <strong class="text-warning" th:text="${c.formatosDesglose['CASSETTE'] != null ? c.formatosDesglose['CASSETTE'] : 0}">0</strong>
+                                                    </span>
+                                                    <span class="badge bg-dark border border-primary text-light px-3 py-2">
+                                                        <i class="bi bi-disc text-primary me-1"></i> CDs: <strong class="text-primary" th:text="${c.formatosDesglose['CD'] != null ? c.formatosDesglose['CD'] : 0}">0</strong>
+                                                    </span>
+                                                    <span class="badge bg-dark border border-success text-light px-3 py-2">
+                                                        <i class="bi bi-speaker text-success me-1"></i> Equipos de Sonido: <strong class="text-success" th:text="${c.formatosDesglose['EQUIPO_SONIDO'] != null ? c.formatosDesglose['EQUIPO_SONIDO'] : 0}">0</strong>
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Desglose de Productos Específicos Más Comprados -->
+                                            <div>
+                                                <h6 class="text-light small fw-bold mb-2">
+                                                    <i class="bi bi-music-note-list me-1 text-warning"></i> Productos Más Adquiridos por <span th:text="${c.nombreCliente}">Cliente</span>:
+                                                </h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm mb-0" style="font-size: 0.8125rem; color: #cbd5e1;">
+                                                        <thead>
+                                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); color: var(--text-secondary);">
+                                                                <th style="width: 15%;">SKU</th>
+                                                                <th style="width: 45%;">Título del Producto</th>
+                                                                <th style="width: 15%;">Formato</th>
+                                                                <th style="width: 10%;" class="text-center">Cant. Total</th>
+                                                                <th style="width: 15%;" class="text-end">Total Invertido</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr th:each="p : ${c.productosTop}" style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                                                <td class="meta-mono text-muted" th:text="${p.sku}">SKU-001</td>
+                                                                <td class="text-light fw-medium" th:text="${p.titulo}">Título</td>
+                                                                <td>
+                                                                    <span class="badge-signature" style="font-size: 0.72rem;">
+                                                                        <i class="bi" th:classappend="${p.formato == 'VINILO' ? 'bi-vinyl text-info' : (p.formato == 'CASSETTE' ? 'bi-cassette text-warning' : (p.formato == 'CD' ? 'bi-disc text-primary' : 'bi-speaker text-success'))}"></i>
+                                                                        <span th:text="${p.formato}">VINILO</span>
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-center meta-mono text-light fw-medium" th:text="${p.cantidadTotal} + ' uds'">1 uds</td>
+                                                                <td class="text-end meta-mono price-display fw-bold" th:text="'$' + ${#numbers.formatDecimal(p.montoTotal, 1, 2)}">$0.00</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </th:block>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

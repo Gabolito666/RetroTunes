@@ -133,26 +133,31 @@
                             </div>
                         </div>
 
-                        <!-- Si el usuario NO es ADMIN: Botones normales de Compra y Alquiler -->
+                        <!-- Si el usuario NO es ADMIN: Botones de Compra y Alquiler extendido a todo producto -->
                         <div th:unless="${(session.usuarioLogueado != null and (session.usuarioLogueado.rol.nombre_rol == 'ADMIN' or session.usuarioLogueado.rol.nombreRol == 'ADMIN')) or (session.usuario != null and (session.usuario.rol.nombre_rol == 'ADMIN' or session.usuario.rol.nombreRol == 'ADMIN'))}">
-                            <!-- Si es VINILO, CASSETTE o CD -> Agregar al carrito -->
-                            <div th:if="${producto.formato != 'EQUIPO_SONIDO'}">
+                            <div th:if="${producto.stock > 0}" class="d-flex flex-column gap-2">
+                                <!-- Botón Comprar (Agregar al Carrito) -->
                                 <form th:action="@{/compras/carrito/agregar}" method="post" class="d-flex gap-2">
                                     <input type="hidden" name="idProducto" th:value="${producto.id_producto}">
-                                    <div style="max-width: 110px;">
-                                        <input type="number" name="cantidad" value="1" min="1" th:max="${producto.stock}" class="input-retro text-center" th:disabled="${producto.stock <= 0}" required>
+                                    <div style="max-width: 100px;">
+                                        <input type="number" name="cantidad" value="1" min="1" th:max="${producto.stock}" class="input-retro text-center" title="Cantidad a comprar" required>
                                     </div>
-                                    <button type="submit" class="btn-retro-primary flex-grow-1" th:disabled="${producto.stock <= 0}">
-                                        <i class="bi bi-cart-plus me-1"></i> Agregar al Carrito
+                                    <button type="submit" class="btn-retro-primary flex-grow-1">
+                                        <i class="bi bi-cart-plus me-1"></i> Comprar
                                     </button>
                                 </form>
+
+                                <!-- Botón Alquilar (Reserva por días) para todo producto con stock disponible -->
+                                <a th:href="@{/alquileres/reserva(equipoId=${producto.id_producto})}" class="btn-retro-secondary w-100 text-center py-2">
+                                    <i class="bi bi-calendar-range me-1"></i> Alquilar (Reserva por días)
+                                    <span class="meta-mono small text-warning ms-1" style="font-size: 0.75rem;">(30% Depósito Custodia)</span>
+                                </a>
                             </div>
 
-                            <!-- Si es EQUIPO_SONIDO -> Reservar alquiler -->
-                            <div th:if="${producto.formato == 'EQUIPO_SONIDO'}">
-                                <a th:href="@{/alquileres/reserva(equipoId=${producto.id_producto})}" class="btn-retro-primary w-100 text-center d-block">
-                                    <i class="bi bi-calendar-plus me-1"></i> Reservar Alquiler de Equipo (30% Garantía)
-                                </a>
+                            <div th:unless="${producto.stock > 0}">
+                                <button class="btn btn-secondary w-100 py-2" disabled>
+                                    <i class="bi bi-x-circle me-1"></i> Agotado / Sin Stock Disponible
+                                </button>
                             </div>
                         </div>
                     </div>

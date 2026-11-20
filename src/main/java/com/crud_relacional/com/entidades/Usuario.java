@@ -35,6 +35,15 @@ public class Usuario implements Serializable {
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
+    @Column(name = "razon_social")
+    private String razon_social;
+
+    @Column(name = "nit")
+    private String nit;
+
+    @Column(name = "codigo_empleado")
+    private String codigo_empleado;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
@@ -49,6 +58,13 @@ public class Usuario implements Serializable {
         this.telefono = telefono;
         this.activo = activo;
         this.rol = rol;
+    }
+
+    public Usuario(String nombre_completo, String correo, String clave_usuario, String telefono, Boolean activo, Rol rol, String razon_social, String nit, String codigo_empleado) {
+        this(nombre_completo, correo, clave_usuario, telefono, activo, rol);
+        this.razon_social = razon_social;
+        this.nit = nit;
+        this.codigo_empleado = codigo_empleado;
     }
 
     public Long getId_usuario() {
@@ -129,5 +145,45 @@ public class Usuario implements Serializable {
 
     public void setRol(Rol rol) {
         this.rol = rol;
+    }
+
+    public String getRazon_social() {
+        return razon_social;
+    }
+
+    public void setRazon_social(String razon_social) {
+        this.razon_social = razon_social;
+    }
+
+    public String getRazonSocial() {
+        return razon_social;
+    }
+
+    public void setRazonSocial(String razonSocial) {
+        this.razon_social = razonSocial;
+    }
+
+    public String getNit() {
+        return nit;
+    }
+
+    public void setNit(String nit) {
+        this.nit = nit;
+    }
+
+    public String getCodigo_empleado() {
+        return codigo_empleado;
+    }
+
+    public void setCodigo_empleado(String codigo_empleado) {
+        this.codigo_empleado = codigo_empleado;
+    }
+
+    public String getCodigoEmpleado() {
+        return codigo_empleado;
+    }
+
+    public void setCodigoEmpleado(String codigoEmpleado) {
+        this.codigo_empleado = codigoEmpleado;
     }
 }

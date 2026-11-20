@@ -21,6 +21,7 @@ C:\Spring_Projects\RetroTunes\src\main\java\com\crud_relacional\com\entidades\Us
 C:\Spring_Projects\RetroTunes\src\main\java\com\crud_relacional\com\entidades\Venta.java
 C:\Spring_Projects\RetroTunes\src\main\java\com\crud_relacional\com\repositorio\AlquilerEquipoRepository.java
 C:\Spring_Projects\RetroTunes\src\main\java\com\crud_relacional\com\repositorio\ArtistaEmpresaRepository.java
+C:\Spring_Projects\RetroTunes\src\main\java\com\crud_relacional\com\repositorio\DetalleVentaRepository.java
 C:\Spring_Projects\RetroTunes\src\main\java\com\crud_relacional\com\repositorio\ProductoMusicaRepository.java
 C:\Spring_Projects\RetroTunes\src\main\java\com\crud_relacional\com\repositorio\ReservaEspacioRepository.java
 C:\Spring_Projects\RetroTunes\src\main\java\com\crud_relacional\com\repositorio\RolRepository.java

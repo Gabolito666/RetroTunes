@@ -45,4 +45,19 @@ public interface ProductoMusicaRepository extends JpaRepository<ProductoMusica, 
     List<ProductoMusica> findByTituloContainingIgnoreCase(String query);
 
     List<ProductoMusica> findByArtista(com.crud_relacional.com.entidades.ArtistaEmpresa artista);
+
+    @Query("SELECT p FROM ProductoMusica p LEFT JOIN p.artista a WHERE " +
+           "(:formato IS NULL OR :formato = '' OR :formato = 'TODOS' OR UPPER(p.formato) = UPPER(:formato) OR (UPPER(:formato) = 'EQUIPO' AND UPPER(p.formato) = 'EQUIPO_SONIDO')) AND " +
+           "(:artista IS NULL OR :artista = '' OR LOWER(p.titulo) LIKE LOWER(CONCAT('%', :artista, '%')) OR (a IS NOT NULL AND LOWER(a.nombre_comercial) LIKE LOWER(CONCAT('%', :artista, '%')))) AND " +
+           "(:discografica IS NULL OR :discografica = '' OR (a IS NOT NULL AND LOWER(a.nombre_comercial) LIKE LOWER(CONCAT('%', :discografica, '%')))) AND " +
+           "(:stockMin IS NULL OR p.stock >= :stockMin) AND " +
+           "(:stockMax IS NULL OR p.stock <= :stockMax) " +
+           "ORDER BY p.id_producto ASC")
+    List<ProductoMusica> filtrarInventarioReporte(
+            @Param("formato") String formato,
+            @Param("artista") String artista,
+            @Param("discografica") String discografica,
+            @Param("stockMin") Integer stockMin,
+            @Param("stockMax") Integer stockMax
+    );
 }

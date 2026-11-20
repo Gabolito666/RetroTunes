@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Submenú 2: Control de Inventario Multicriterio')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 1140px;">
+        <!-- Encabezado del Módulo de Reportes -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 gap-3" style="border-bottom: 1px solid var(--border-hairline);">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-info text-dark"><i class="bi bi-shield-check me-1"></i> PANEL ADMINISTRADOR</span>
+                    <h1 class="h4 text-light fw-medium mb-0">Centro de Reportes y Auditoría</h1>
+                </div>
+                <p class="text-secondary small mb-0">Supervisión contable, control de inventario, métricas de clientes y gestión de alquileres universales.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/reportes/excel(tipo='completo')}" class="btn-retro-secondary btn-sm" title="Descargar Libro Consolidado">
+                    <i class="bi bi-file-earmark-excel text-success me-1"></i> Exportar Inventario (.xlsx)
+                </a>
+                <a th:href="@{/admin/dashboard}" class="btn-retro-secondary btn-sm">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- PESTAÑAS / SUBMENÚS DE REPORTES ADMIN -->
+        <ul class="nav nav-pills mb-4 gap-2 p-2 rounded" style="background: rgba(18, 18, 20, 0.9); border: 1px solid var(--border-hairline);">
+            <li class="nav-item">
+                <a class="nav-link text-secondary fw-medium" th:href="@{/admin/reportes/calendario}">
+                    <i class="bi bi-calendar3-range me-1 text-warning"></i> 1. Calendario de Préstamos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active fw-medium" th:href="@{/admin/reportes/inventario}">
+                    <i class="bi bi-boxes me-1 text-info"></i> 2. Control de Inventario
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary fw-medium" th:href="@{/admin/reportes/top-clientes}">
+                    <i class="bi bi-trophy me-1 text-warning"></i> 3. Top Clientes Compradores
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary fw-medium" th:href="@{/admin/reportes/compras}">
+                    <i class="bi bi-receipt-cutoff me-1 text-success"></i> 4. Historial Detallado Compras
+                </a>
+            </li>
+        </ul>
+
+        <!-- KPI CARDS: Métricas de Stock y Valorización -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Referencias Filtradas</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-light fw-bold" th:text="${totalProductos}">0</span>
+                        <span class="meta-mono text-muted small">títulos</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Total Unidades Físicas</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-info fw-bold" th:text="${totalPiezas}">0</span>
+                        <span class="meta-mono text-info small"><i class="bi bi-box-seam"></i> piezas</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card-retro p-3">
+                    <span class="text-secondary small d-block mb-1">Valorización de Stock</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 text-success fw-bold price-display" th:text="'$' + ${#numbers.formatDecimal(valorizacionTotal, 1, 2)}">$0.00</span>
+                        <span class="meta-mono text-muted small">comercial</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card-retro p-3" th:style="${bajoStock > 0 ? 'border-left: 3px solid #ef4444;' : ''}">
+                    <span class="text-secondary small d-block mb-1">Bajo Stock (&lt; 5 uds)</span>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fs-4 fw-bold" th:classappend="${bajoStock > 0 ? 'text-danger' : 'text-light'}" th:text="${bajoStock}">0</span>
+                        <span class="badge bg-danger-subtle text-danger small"><i class="bi bi-exclamation-triangle"></i> Reabastecer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULARIO DE FILTROS MULTICRITERIO JPQL -->
+        <div class="card-retro p-4 mb-4">
+            <h2 class="h6 text-light fw-medium mb-3">
+                <i class="bi bi-sliders2 me-2 text-info"></i>Filtros Multicriterio de Inventario (Consulta JPQL)
+            </h2>
+            <form th:action="@{/admin/reportes/inventario}" method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label text-secondary small">Tipo de Producto</label>
+                    <select name="formato" class="form-select bg-dark border-secondary text-light">
+                        <option value="TODOS" th:selected="${formatoFiltro == null or formatoFiltro == 'TODOS'}">Todos los formatos</option>
+                        <option value="VINILO" th:selected="${formatoFiltro == 'VINILO'}">Vinilo (180g)</option>
+                        <option value="CASSETTE" th:selected="${formatoFiltro == 'CASSETTE'}">Cassette Vintage</option>
+                        <option value="CD" th:selected="${formatoFiltro == 'CD'}">Compact Disc (CD)</option>
+                        <option value="EQUIPO" th:selected="${formatoFiltro == 'EQUIPO' or formatoFiltro == 'EQUIPO_SONIDO'}">Equipo de Sonido</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-secondary small">Artista / Grupo Musical</label>
+                    <input type="text" name="artista" class="input-retro" placeholder="Ej. Pink Floyd, The Beatles..." th:value="${artistaFiltro}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label text-secondary small">Discográfica / Sello</label>
+                    <input type="text" name="discografica" class="input-retro" placeholder="Ej. Warner, Sony..." th:value="${discograficaFiltro}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label text-secondary small">Rango Stock (Mín - Máx)</label>
+                    <div class="input-group">
+                        <input type="number" name="stockMin" class="form-control bg-dark border-secondary text-light text-center p-1" placeholder="Mín" th:value="${stockMinFiltro}">
+                        <span class="input-group-text bg-dark border-secondary text-muted">-</span>
+                        <input type="number" name="stockMax" class="form-control bg-dark border-secondary text-light text-center p-1" placeholder="Máx" th:value="${stockMaxFiltro}">
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn-retro-primary w-100"><i class="bi bi-funnel me-1"></i> Filtrar</button>
+                    <a th:href="@{/admin/reportes/inventario}" class="btn-retro-secondary" title="Limpiar"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLA DE STOCK DINÁMICO -->
+        <div class="card-retro p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 text-light fw-medium mb-0">
+                    <i class="bi bi-table text-info me-2"></i>Tabla de Stock Dinámico
+                </h2>
+                <span class="meta-mono text-muted small" th:text="${#lists.size(productos)} + ' registros coincidentes'">0 registros</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-retro table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th style="width: 110px;">SKU</th>
+                            <th>Formato</th>
+                            <th>Título del Producto / Lanzamiento</th>
+                            <th>Artista / Discográfica</th>
+                            <th class="text-end">Precio Venta</th>
+                            <th class="text-end">Alquiler/Día</th>
+                            <th class="text-center">Stock</th>
+                            <th class="text-end">Valorización</th>
+                            <th class="text-center" style="width: 90px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(productos)}">
+                            <td colspan="9" class="text-center py-4 text-muted small">No se encontraron productos con los filtros multicriterio aplicados.</td>
+                        </tr>
+                        <tr th:each="p : ${productos}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
+                            <td>
+                                <span class="meta-mono text-light fw-medium" th:text="${p.sku}">SKU-001</span>
+                            </td>
+                            <td>
+                                <span class="badge-signature" style="font-size: 0.72rem;">
+                                    <i class="bi" th:classappend="${p.formato == 'VINILO' ? 'bi-vinyl text-info' : (p.formato == 'CASSETTE' ? 'bi-cassette text-warning' : (p.formato == 'CD' ? 'bi-disc text-primary' : 'bi-speaker text-success'))}"></i>
+                                    <span th:text="${p.formato}">VINILO</span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-light fw-medium d-block" th:text="${p.titulo}">Título</span>
+                                <small th:if="${p.fecha_lanzamiento != null and !#strings.isEmpty(p.fecha_lanzamiento)}" class="meta-mono text-muted" style="font-size: 0.72rem;" th:text="'Lanzamiento: ' + ${p.fecha_lanzamiento}">1973</small>
+                            </td>
+                            <td>
+                                <span th:if="${p.artista != null}" class="badge bg-dark border border-secondary text-secondary small">
+                                    <i class="bi bi-building me-1"></i><span th:text="${p.artista.nombre_comercial}">Discográfica</span>
+                                </span>
+                                <span th:unless="${p.artista != null}" class="text-muted small">Catálogo Propio</span>
+                            </td>
+                            <td class="text-end meta-mono text-light" th:text="'$' + ${#numbers.formatDecimal(p.precio_venta, 1, 2)}">$0.00</td>
+                            <td class="text-end meta-mono text-secondary" th:text="'$' + ${#numbers.formatDecimal(p.precio_alquiler_dia, 1, 2)} + ' /d'">$0.00</td>
+                            <td class="text-center">
+                                <span class="badge" 
+                                      th:classappend="${p.stock <= 0 ? 'bg-danger text-light' : (p.stock < 5 ? 'bg-warning text-dark' : 'bg-success-subtle text-success border border-success')}"
+                                      th:text="${p.stock} + ' uds'">0 uds</span>
+                            </td>
+                            <td class="text-end meta-mono price-display fw-bold" 
+                                th:text="'$' + ${#numbers.formatDecimal(p.precio_venta.multiply(T(java.math.BigDecimal).valueOf(p.stock)), 1, 2)}">$0.00</td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a th:href="@{'/catalogo/' + ${p.id_producto}}" class="btn-retro-secondary btn-sm py-0 px-2" title="Ver Detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{'/catalogo/editar/' + ${p.id_producto}}" class="btn-retro-secondary btn-sm py-0 px-2" title="Editar Stock y Precio">
+                                        <i class="bi bi-pencil-square text-info"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

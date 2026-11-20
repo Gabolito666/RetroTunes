@@ -10,11 +10,14 @@
             <div>
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <span class="badge bg-warning text-dark"><i class="bi bi-shield-lock-fill me-1"></i> SEGURIDAD & ROLES</span>
-                    <h1 class="h4 text-light fw-medium mb-0">Gestión de Usuarios del Sistema</h1>
+                    <h1 class="h4 text-light fw-medium mb-0">Gestión de Usuarios y Cuentas Corporativas</h1>
                 </div>
-                <p class="text-secondary small mb-0">Administración directa de cuentas, asignación de roles y control de estado de acceso (Activo / Inactivo).</p>
+                <p class="text-secondary small mb-0">Administración de usuarios, registro exclusivo de perfiles corporativos (Discográficas y Técnicos) y control de accesos.</p>
             </div>
             <div class="d-flex gap-2">
+                <button type="button" class="btn-retro-primary" data-bs-toggle="collapse" data-bs-target="#panelCrearCorporativo" aria-expanded="false" style="font-size: 0.8125rem;">
+                    <i class="bi bi-building-add me-1"></i> Crear Usuario Corporativo
+                </button>
                 <a th:href="@{/admin/dashboard}" class="btn-retro-secondary" style="font-size: 0.8125rem;">
                     <i class="bi bi-speedometer2 me-1"></i> Dashboard
                 </a>
@@ -31,6 +34,81 @@
             <span th:text="${error}"></span>
         </div>
 
+        <!-- FORMULARIO INTERNO: Crear Usuario Corporativo (Exclusivo Administrador - Opción 1) -->
+        <div class="collapse mb-4" id="panelCrearCorporativo">
+            <div class="card-retro p-4" style="border: 1px solid rgba(234, 179, 8, 0.4); background: rgba(24, 24, 27, 0.95);">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2" style="border-bottom: 1px solid var(--border-hairline);">
+                    <div>
+                        <h2 class="h6 text-warning fw-medium mb-1">
+                            <i class="bi bi-building-fill-gear me-2"></i>Alta Directa de Usuario Corporativo (Opción 1)
+                        </h2>
+                        <p class="text-secondary small mb-0">Habilitado exclusivamente para el Administrador. Las cuentas públicas en '/registro' quedan reservadas para clientes.</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#panelCrearCorporativo">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <form th:action="@{/admin/usuarios/corporativo}" method="post" id="formUsuarioCorporativo" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-light small fw-medium">Nombre Completo o Contacto <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre_completo" class="input-retro" placeholder="Ej. Carlos Mendoza (Representante Warner)" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-light small fw-medium">Correo Electrónico Corporativo <span class="text-danger">*</span></label>
+                        <input type="email" name="correo" class="input-retro" placeholder="contacto@discografica.com" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-light small fw-medium">Contraseña Asignada <span class="text-danger">*</span></label>
+                        <input type="password" name="clave" class="input-retro" placeholder="Mínimo 6 caracteres" minlength="6" required>
+                        <small class="meta-mono text-muted" style="font-size: 0.7rem;">Cifrado automático con BCryptPasswordEncoder.</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-light small fw-medium">Teléfono de Contacto</label>
+                        <input type="text" name="telefono" class="input-retro" placeholder="+57 300 000 0000">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-light small fw-medium">Rol Corporativo Asignado <span class="text-danger">*</span></label>
+                        <select name="rol" id="selectRolCorporativo" class="form-select bg-dark text-light border-secondary" required onchange="toggleCamposCorporativos()">
+                            <option value="DISCOGRAFICA" selected>DISCOGRAFICA (Sello / Editora)</option>
+                            <option value="TECNICO_OPERACIONES">TECNICO_OPERACIONES (Inspección & Logística)</option>
+                        </select>
+                    </div>
+
+                    <!-- Campos dinámicos para DISCOGRAFICA -->
+                    <div id="camposDiscografica" class="row g-3 col-12 m-0 p-3 rounded" style="background: rgba(34, 197, 94, 0.05); border: 1px dashed rgba(34, 197, 94, 0.3);">
+                        <div class="col-12 mb-1">
+                            <span class="badge bg-success text-dark small"><i class="bi bi-building me-1"></i> DATOS DE LA DISCOGRÁFICA</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light small fw-medium">Razón Social de la Discográfica <span class="text-danger">*</span></label>
+                            <input type="text" name="razonSocial" id="inputRazonSocial" class="input-retro" placeholder="Ej. Sony Music Entertainment Colombia S.A.S.">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light small fw-medium">NIT / Identificación Tributaria <span class="text-danger">*</span></label>
+                            <input type="text" name="nit" id="inputNit" class="input-retro" placeholder="Ej. 900.123.456-7">
+                        </div>
+                    </div>
+
+                    <!-- Campos dinámicos para TECNICO_OPERACIONES -->
+                    <div id="camposTecnico" class="row g-3 col-12 m-0 p-3 rounded d-none" style="background: rgba(234, 179, 8, 0.05); border: 1px dashed rgba(234, 179, 8, 0.3);">
+                        <div class="col-12 mb-1">
+                            <span class="badge bg-warning text-dark small"><i class="bi bi-tools me-1"></i> CREDENCIAL TÉCNICA</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-light small fw-medium">Código de Empleado / Credencial Técnica <span class="text-danger">*</span></label>
+                            <input type="text" name="codigoEmpleado" id="inputCodigoEmpleado" class="input-retro" placeholder="Ej. TEC-OP-089">
+                        </div>
+                    </div>
+
+                    <div class="col-12 text-end pt-2">
+                        <button type="button" class="btn btn-secondary btn-sm me-2" data-bs-toggle="collapse" data-bs-target="#panelCrearCorporativo">Cancelar</button>
+                        <button type="submit" class="btn-retro-primary"><i class="bi bi-check2-circle me-1"></i> Registrar Usuario Corporativo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Barra de Búsqueda y Filtrado -->
         <div class="card-retro p-3 mb-4">
             <form th:action="@{/admin/usuarios}" method="get" class="row g-2 align-items-center">
@@ -38,7 +116,7 @@
                     <div class="input-group">
                         <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
                         <input type="text" name="q" class="form-control bg-dark border-secondary text-light" 
-                               placeholder="Buscar por nombre, correo o teléfono..." th:value="${busqueda}">
+                               placeholder="Buscar por nombre, correo, teléfono, razón social, NIT o código..." th:value="${busqueda}">
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -67,7 +145,7 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-hairline); color: #a1a1aa;">
                             <th style="width: 50px;">ID</th>
-                            <th>Nombre Completo</th>
+                            <th>Usuario / Razón Social</th>
                             <th>Correo Electrónico</th>
                             <th>Teléfono</th>
                             <th>Rol Asignado</th>
@@ -78,7 +156,15 @@
                     <tbody>
                         <tr th:each="u : ${usuarios}" style="border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle;">
                             <td class="meta-mono text-muted" th:text="${u.id_usuario}">1</td>
-                            <td class="text-light fw-medium" th:text="${u.nombre_completo}">Juan Pérez</td>
+                            <td>
+                                <span class="text-light fw-medium d-block" th:text="${u.nombre_completo}">Juan Pérez</span>
+                                <span th:if="${u.razon_social != null and !#strings.isEmpty(u.razon_social)}" class="badge bg-success-subtle text-success border border-success-subtle small mt-1">
+                                    <i class="bi bi-building me-1"></i><span th:text="${u.razon_social}">Sello</span> (NIT: <span th:text="${u.nit}">NIT</span>)
+                                </span>
+                                <span th:if="${u.codigo_empleado != null and !#strings.isEmpty(u.codigo_empleado)}" class="badge bg-warning-subtle text-warning border border-warning-subtle small mt-1">
+                                    <i class="bi bi-upc-scan me-1"></i>Cód: <span th:text="${u.codigo_empleado}">TEC-001</span>
+                                </span>
+                            </td>
                             <td class="meta-mono text-secondary" th:text="${u.correo}">correo@ejemplo.com</td>
                             <td class="meta-mono text-muted" th:text="${u.telefono != null ? u.telefono : '-'}">+57 300 000</td>
                             <td>
@@ -149,6 +235,21 @@
                                                                     th:selected="${u.rol != null and u.rol.id_rol == r.id_rol}"></option>
                                                         </select>
                                                     </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-secondary small">Razón Social (Para Discográficas)</label>
+                                                        <input type="text" name="razon_social" class="form-control bg-black border-secondary text-light" 
+                                                               th:value="${u.razon_social}" placeholder="Razón social del sello">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-secondary small">NIT (Para Discográficas)</label>
+                                                        <input type="text" name="nit" class="form-control bg-black border-secondary text-light" 
+                                                               th:value="${u.nit}" placeholder="NIT">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-secondary small">Código de Empleado (Para Técnicos)</label>
+                                                        <input type="text" name="codigo_empleado" class="form-control bg-black border-secondary text-light" 
+                                                               th:value="${u.codigo_empleado}" placeholder="Código empleado">
+                                                    </div>
                                                     <div class="form-check form-switch mt-2">
                                                         <input class="form-check-input" type="checkbox" name="activo" value="true" 
                                                                th:id="'activoCheck-' + ${u.id_usuario}" th:checked="${u.activo}">
@@ -174,5 +275,31 @@
     </main>
 
     <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <script>
+        function toggleCamposCorporativos() {
+            const selectRol = document.getElementById('selectRolCorporativo');
+            const camposDiscografica = document.getElementById('camposDiscografica');
+            const camposTecnico = document.getElementById('camposTecnico');
+            const inputRazonSocial = document.getElementById('inputRazonSocial');
+            const inputNit = document.getElementById('inputNit');
+            const inputCodigoEmpleado = document.getElementById('inputCodigoEmpleado');
+
+            if (selectRol.value === 'DISCOGRAFICA') {
+                camposDiscografica.classList.remove('d-none');
+                camposTecnico.classList.add('d-none');
+                inputRazonSocial.required = true;
+                inputNit.required = true;
+                inputCodigoEmpleado.required = false;
+            } else if (selectRol.value === 'TECNICO_OPERACIONES') {
+                camposDiscografica.classList.add('d-none');
+                camposTecnico.classList.remove('d-none');
+                inputRazonSocial.required = false;
+                inputNit.required = false;
+                inputCodigoEmpleado.required = true;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', toggleCamposCorporativos);
+    </script>
 </body>
 </html>

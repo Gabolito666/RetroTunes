@@ -159,12 +159,12 @@
 
                         <form th:action="@{/alquileres/reserva}" method="post" id="formReserva">
                             <div class="mb-3">
-                                <label class="form-label text-light small fw-medium">Seleccionar Equipo de Sonido</label>
+                                <label class="form-label text-light small fw-medium">Seleccionar Pieza Musical o Equipo para Alquiler</label>
                                 <select name="idEquipo" id="selectEquipo" class="form-select bg-dark text-light" style="border: 1px solid var(--border-hairline); border-radius: var(--radius-control);" required>
-                                    <option value="" disabled th:selected="${equipoSeleccionadoId == null}">-- Selecciona un equipo disponible --</option>
+                                    <option value="" disabled th:selected="${equipoSeleccionadoId == null}">-- Selecciona una pieza musical o equipo disponible --</option>
                                     <option th:each="equipo : ${equipos}" 
                                             th:value="${equipo.id_producto}" 
-                                            th:text="${equipo.titulo} + ' ($' + ${#numbers.formatDecimal(equipo.precio_alquiler_dia, 1, 2)} + ' /día)'"
+                                            th:text="'[' + ${equipo.formato} + '] ' + ${equipo.titulo} + ' ($' + ${#numbers.formatDecimal(equipo.precio_alquiler_dia, 1, 2)} + ' /día)'"
                                             th:selected="${equipoSeleccionadoId != null and equipoSeleccionadoId == equipo.id_producto}"
                                             th:data-precio-dia="${equipo.precio_alquiler_dia}"
                                             th:data-precio-venta="${equipo.precio_venta}">

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Submenú 1: Calendario de Préstamos y Devoluciones')}"></head>
+<body>
+    <div th:replace="~{fragments/layout :: navbar}"></div>
+
+    <main class="container py-4" style="max-width: 1140px;">
+        <!-- Encabezado del Módulo de Reportes -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 gap-3" style="border-bottom: 1px solid var(--border-hairline);">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-info text-dark"><i class="bi bi-shield-check me-1"></i> PANEL ADMINISTRADOR</span>
+                    <h1 class="h4 text-light fw-medium mb-0">Centro de Reportes y Auditoría</h1>
+                </div>
+                <p class="text-secondary small mb-0">Supervisión contable, control de inventario, métricas de clientes y gestión de alquileres universales.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/admin/reportes/excel(tipo='alquileres')}" class="btn-retro-secondary btn-sm" title="Descargar Excel">
+                    <i class="bi bi-file-earmark-excel text-success me-1"></i> Excel Alquileres
+                </a>
+                <a th:href="@{/admin/reportes/pdf(tipo='alquileres')}" target="_blank" class="btn-retro-secondary btn-sm" title="Descargar PDF">
+                    <i class="bi bi-file-earmark-pdf text-danger me-1"></i> PDF
+                </a>
+                <a th:href="@{/admin/dashboard}" class="btn-retro-secondary btn-sm">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- PESTAÑAS / SUBMENÚS DE REPORTES ADMIN -->
+        <ul class="nav nav-pills mb-4 gap-2 p-2 rounded" style="background: rgba(18, 18, 20, 0.9); border: 1px solid var(--border-hairline);">
+            <li class="nav-item">
+                <a class="nav-link active fw-medium" th:href="@{/admin/reportes/calendario}">
+                    <i class="bi bi-calendar3-range me-1 text-warning"></i> 1. Calendario de Préstamos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary fw-medium" th:href="@{/admin/reportes/inventario}">
+                    <i class="bi bi-boxes me-1 text-info"></i> 2. Control de Inventario
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary fw-medium" th:href="@{/admin/reportes/top-clientes}">
+                    <i class="bi bi-trophy me-1 text-warning"></i> 3. Top Clientes Compradores
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-secondary fw-medium" th:href="@{/admin/reportes/compras}">
+                    <i class="bi bi-receipt-cutoff me-1 text-success"></i> 4. Historial Detallado Compras
+                </a>
+            </li>
+        </ul>
+
+        <!-- KPI CARDS: Estados de Alquiler y Depósitos en Custodia -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-2">
+                <div class="card-retro p-3 text-center">
+                    <span class="text-secondary small d-block mb-1">Total Alquileres</span>
+                    <span class="fs-4 text-light fw-bold" th:text="${totalAlquileres}">0</span>
+                    <span class="meta-mono text-muted small d-block">contratos</span>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <div class="card-retro p-3 text-center" style="border-left: 3px solid #38bdf8;">
+                    <span class="text-secondary small d-block mb-1">Reservados</span>
+                    <span class="fs-4 text-info fw-bold" th:text="${reservados}">0</span>
+                    <span class="badge bg-primary text-light small">RESERVADO</span>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <div class="card-retro p-3 text-center" style="border-left: 3px solid #eab308;">
+                    <span class="text-secondary small d-block mb-1">En Uso</span>
+                    <span class="fs-4 text-warning fw-bold" th:text="${enUso}">0</span>
+                    <span class="badge bg-warning text-dark small">EN_USO</span>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <div class="card-retro p-3 text-center" style="border-left: 3px solid #22c55e;">
+                    <span class="text-secondary small d-block mb-1">Devueltos</span>
+                    <span class="fs-4 text-success fw-bold" th:text="${devueltos}">0</span>
+                    <span class="badge bg-success text-dark small">DEVUELTO</span>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <div class="card-retro p-3 text-center" style="border-left: 3px solid #ef4444;">
+                    <span class="text-secondary small d-block mb-1">Con Novedad</span>
+                    <span class="fs-4 text-danger fw-bold" th:text="${conNovedad}">0</span>
+                    <span class="badge bg-danger text-light small">CON_NOVEDAD</span>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-2">
+                <div class="card-retro p-3 text-center" style="border-left: 3px solid #f59e0b;">
+                    <span class="text-secondary small d-block mb-1">Depósitos Custodia</span>
+                    <span class="fs-5 text-warning fw-bold meta-mono" th:text="'$' + ${#numbers.formatDecimal(depositosCustodia, 1, 2)}">$0.00</span>
+                    <span class="meta-mono text-muted small d-block">30% retenido</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros del Calendario / Cronograma -->
+        <div class="card-retro p-3 mb-4">
+            <form th:action="@{/admin/reportes/calendario}" method="get" class="row g-2 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" class="form-control bg-dark border-secondary text-light" 
+                               placeholder="Buscar por código, título de producto/equipo, cliente o correo..." th:value="${busqueda}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="estado" class="form-select bg-dark border-secondary text-light">
+                        <option value="TODOS" th:selected="${estadoFiltro == null or estadoFiltro == 'TODOS'}">Todos los estados</option>
+                        <option value="RESERVADO" th:selected="${estadoFiltro == 'RESERVADO'}">RESERVADO (Pendiente despacho)</option>
+                        <option value="EN_USO" th:selected="${estadoFiltro == 'EN_USO'}">EN_USO (En posesión del cliente)</option>
+                        <option value="DEVUELTO" th:selected="${estadoFiltro == 'DEVUELTO'}">DEVUELTO (Concluido con éxito)</option>
+                        <option value="CON_NOVEDAD" th:selected="${estadoFiltro == 'CON_NOVEDAD'}">CON_NOVEDAD (Inspección técnica retenida)</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn-retro-primary w-100"><i class="bi bi-filter me-1"></i> Filtrar</button>
+                    <a th:href="@{/admin/reportes/calendario}" class="btn-retro-secondary" title="Limpiar"><i class="bi bi-x-lg"></i></a>
+                </div>
+            </form>
+        </div>
+
+        <!-- SECCIÓN DE MINICALENDARIO / CRONOGRAMA VISUAL -->
+        <div class="card-retro p-4 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+                <div>
+                    <h2 class="h5 text-light fw-medium mb-1">
+                        <i class="bi bi-calendar-week text-warning me-2"></i>Cronograma Visual de Préstamos y Devoluciones
+                    </h2>
+                    <p class="text-secondary small mb-0">Monitoreo de flujo temporal: Fechas de inicio, entregas programadas y devoluciones inspeccionadas.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle small px-2 py-1">RESERVADO</span>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle small px-2 py-1">EN_USO</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-1">DEVUELTO</span>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle small px-2 py-1">CON_NOVEDAD</span>
+                </div>
+            </div>
+
+            <!-- Tabla de Cronograma y Alquileres Universales -->
+            <div class="table-responsive">
+                <table class="table table-retro table-hover mb-0" style="background: transparent; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-hairline); color: var(--text-secondary);">
+                            <th style="width: 130px;">Código Alquiler</th>
+                            <th>Pieza / Equipo Alquilado</th>
+                            <th>Cliente</th>
+                            <th class="text-center">Fecha Inicio</th>
+                            <th class="text-center">Fecha Devolución</th>
+                            <th class="text-end">Renta Total</th>
+                            <th class="text-end">Depósito (30%)</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center" style="width: 100px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(alquileres)}">
+                            <td colspan="9" class="text-center py-4 text-muted small">No se registran alquileres con los criterios seleccionados.</td>
+                        </tr>
+                        <tr th:each="alq : ${alquileres}" style="border-bottom: 1px solid var(--border-hairline); vertical-align: middle;">
+                            <td>
+                                <span class="meta-mono text-light fw-medium d-block" th:text="${alq.codigo_alquiler}">ALQ-001</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge-signature" style="font-size: 0.72rem;">
+                                        <i class="bi" th:classappend="${alq.equipo != null and alq.equipo.formato == 'VINILO' ? 'bi-vinyl text-info' : (alq.equipo != null and alq.equipo.formato == 'CASSETTE' ? 'bi-cassette text-warning' : (alq.equipo != null and alq.equipo.formato == 'CD' ? 'bi-disc text-primary' : 'bi-speaker text-success'))}"></i>
+                                        <span th:text="${alq.equipo != null ? alq.equipo.formato : 'PIEZA'}">VINILO</span>
+                                    </span>
+                                    <div>
+                                        <span class="text-light fw-medium d-block" th:text="${alq.equipo != null ? alq.equipo.titulo : 'Pieza de Catálogo'}">Título</span>
+                                        <span class="meta-mono text-muted small" th:text="${alq.equipo != null ? alq.equipo.sku : 'SKU-000'}">SKU</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-light d-block" th:text="${alq.cliente != null ? alq.cliente.nombre_completo : 'Cliente General'}">Cliente</span>
+                                <span class="meta-mono text-muted small" th:text="${alq.cliente != null ? alq.cliente.correo : 'N/A'}">correo@ejemplo.com</span>
+                            </td>
+                            <td class="text-center meta-mono text-light">
+                                <i class="bi bi-calendar-event text-secondary me-1"></i>
+                                <span th:text="${alq.fecha_inicio}">2026-01-01</span>
+                            </td>
+                            <td class="text-center meta-mono text-light">
+                                <i class="bi bi-calendar-check text-warning me-1"></i>
+                                <span th:text="${alq.fecha_fin}">2026-01-05</span>
+                            </td>
+                            <td class="text-end meta-mono text-light fw-medium" th:text="'$' + ${#numbers.formatDecimal(alq.monto_alquiler, 1, 2)}">$0.00</td>
+                            <td class="text-end meta-mono text-warning" th:text="'$' + ${#numbers.formatDecimal(alq.deposito_garantia, 1, 2)}">$0.00</td>
+                            <td class="text-center">
+                                <span class="badge" 
+                                      th:classappend="${alq.estado == 'RESERVADO' ? 'bg-primary' : 
+                                                      (alq.estado == 'EN_USO' ? 'bg-warning text-dark' : 
+                                                      (alq.estado == 'DEVUELTO' ? 'bg-success' : 'bg-danger'))}"
+                                      style="font-size: 0.75rem;"
+                                      th:text="${alq.estado}">
+                                    RESERVADO
+                                </span>
+                                <small th:if="${alq.novedad_tecnica != null and !#strings.isEmpty(alq.novedad_tecnica)}" 
+                                       class="d-block text-danger small mt-1" style="font-size: 0.7rem;"
+                                       th:title="${alq.novedad_tecnica}">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Novedad
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a th:href="@{'/admin/contrato-alquiler/' + ${alq.id_alquiler} + '/docx'}" class="btn-retro-secondary btn-sm py-1 px-2" title="Descargar Contrato Word">
+                                        <i class="bi bi-file-earmark-word text-info"></i>
+                                    </a>
+                                    <a th:href="@{'/alquileres/' + ${alq.id_alquiler} + '/ical'}" class="btn-retro-secondary btn-sm py-1 px-2" title="Descargar iCal Calendar">
+                                        <i class="bi bi-calendar-plus text-warning"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

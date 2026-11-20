@@ -7,6 +7,7 @@ com\crud_relacional\com\controlador\ArtistaController.class
 com\crud_relacional\com\controlador\SpotifyClientHelper$TrackDto.class
 com\crud_relacional\com\controlador\AdminController$CompraIndividualClienteDto.class
 com\crud_relacional\com\entidades\DetalleVenta.class
+com\crud_relacional\com\controlador\AdminController$ProductoAdquiridoDto.class
 com\crud_relacional\com\controlador\VentaController.class
 com\crud_relacional\com\repositorio\RolRepository.class
 com\crud_relacional\com\controlador\AdminController.class
@@ -29,9 +30,11 @@ com\crud_relacional\com\controlador\AuthController.class
 com\crud_relacional\com\controlador\AdminController$ClienteReporteComprasDto.class
 com\crud_relacional\com\entidades\ProductoMusica.class
 com\crud_relacional\com\repositorio\ReservaEspacioRepository.class
+com\crud_relacional\com\repositorio\DetalleVentaRepository.class
 com\crud_relacional\com\controlador\ReporteExcelHelper.class
 com\crud_relacional\com\controlador\AdminController$VentaPorTipoDto.class
 com\crud_relacional\com\controlador\CatalogoController.class
+com\crud_relacional\com\controlador\AdminController$TopClienteReporteDto.class
 com\example\app\WebConfig.class
 com\crud_relacional\com\controlador\OperacionesController.class
 com\crud_relacional\com\entidades\Venta.class

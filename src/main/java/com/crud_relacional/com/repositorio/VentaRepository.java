@@ -33,4 +33,9 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     @Query("SELECT d.producto.formato, SUM(d.cantidad), SUM(d.subtotal) FROM DetalleVenta d GROUP BY d.producto.formato ORDER BY SUM(d.cantidad) DESC")
     List<Object[]> findVentasPorFormato();
+
+    @Query("SELECT v.cliente.id_usuario, v.cliente.nombre_completo, v.cliente.correo, v.cliente.telefono, COUNT(DISTINCT v.id_venta), SUM(v.monto_total) " +
+           "FROM Venta v GROUP BY v.cliente.id_usuario, v.cliente.nombre_completo, v.cliente.correo, v.cliente.telefono " +
+           "ORDER BY SUM(v.monto_total) DESC")
+    List<Object[]> rankingTopClientes();
 }

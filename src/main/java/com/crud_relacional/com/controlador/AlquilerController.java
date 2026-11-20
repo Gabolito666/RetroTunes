@@ -21,6 +21,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,11 +42,12 @@ public class AlquilerController {
     }
 
     /**
-     * Mapeo estricto para GET /alquileres y GET /alquileres/reserva
-     * Filtra EXCLUSIVAMENTE productos de categoría equipo ('EQUIPO_SONIDO')
+     * Mapeo para GET /alquileres y GET /alquileres/reserva
+     * Habilitado para TODO el catálogo: Equipos de Sonido, Vinilos, Cassettes y CDs
      */
     @GetMapping({"", "/reserva"})
     public String mostrarFormularioReserva(@RequestParam(value = "equipoId", required = false) Long equipoId,
+                                           @RequestParam(value = "productoId", required = false) Long productoId,
                                            HttpSession session,
                                            Model model) {
         Usuario usuario = (Usuario) session.getAttribute("usuarioLogueado");
@@ -56,10 +58,15 @@ public class AlquilerController {
         boolean esAdmin = usuario != null && usuario.getRol() != null && 
                 ("ADMIN".equalsIgnoreCase(usuario.getRol().getNombre_rol()) || "ADMIN".equalsIgnoreCase(usuario.getRol().getNombreRol()));
 
-        // SEPARACIÓN ESTRICTA: Solo equipos de sonido, prohibido vinilos, cassettes o CDs
-        List<ProductoMusica> equipos = productoMusicaRepository.findSoloEquipos();
-        model.addAttribute("equipos", equipos);
-        model.addAttribute("equipoSeleccionadoId", equipoId);
+        Long itemSeleccionado = equipoId != null ? equipoId : productoId;
+
+        // Alquiler universal extendido: Equipos de Sonido, Vinilos, Cassettes y CDs
+        List<ProductoMusica> todosProductos = productoMusicaRepository.findAll();
+        todosProductos.sort(Comparator.comparing(ProductoMusica::getId_producto));
+
+        model.addAttribute("equipos", todosProductos);
+        model.addAttribute("productos", todosProductos);
+        model.addAttribute("equipoSeleccionadoId", itemSeleccionado);
         model.addAttribute("fechaMinima", LocalDate.now());
         model.addAttribute("esAdmin", esAdmin);
         model.addAttribute("usuarioAutenticado", usuario != null);
@@ -68,11 +75,18 @@ public class AlquilerController {
     }
 
     @PostMapping("/reserva")
-    public String procesarReserva(@RequestParam("idEquipo") Long idEquipo,
+    public String procesarReserva(@RequestParam(value = "idEquipo", required = false) Long idEquipo,
+                                  @RequestParam(value = "idProducto", required = false) Long idProducto,
                                   @RequestParam("fechaInicio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
                                   @RequestParam("fechaFin") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
                                   HttpSession session,
                                   RedirectAttributes redirectAttributes) {
+        Long targetId = idEquipo != null ? idEquipo : idProducto;
+        if (targetId == null) {
+            redirectAttributes.addFlashAttribute("errorAlquiler", "Debes seleccionar un producto o equipo para alquiler.");
+            return "redirect:/alquileres";
+        }
+
         Usuario usuarioEnSesion = (Usuario) session.getAttribute("usuarioLogueado");
         if (usuarioEnSesion == null) {
             usuarioEnSesion = (Usuario) session.getAttribute("usuario");
@@ -93,34 +107,43 @@ public class AlquilerController {
             return "redirect:/alquileres";
         }
 
-        Optional<ProductoMusica> optEquipo = productoMusicaRepository.findById(idEquipo);
-        if (optEquipo.isEmpty() || !"EQUIPO_SONIDO".equalsIgnoreCase(optEquipo.get().getFormato())) {
-            redirectAttributes.addFlashAttribute("errorAlquiler", "El artículo seleccionado no corresponde a un equipo de sonido para alquiler.");
+        Optional<ProductoMusica> optEquipo = productoMusicaRepository.findById(targetId);
+        if (optEquipo.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorAlquiler", "El artículo seleccionado no existe en el catálogo.");
             return "redirect:/alquileres";
         }
 
-        ProductoMusica equipo = optEquipo.get();
+        ProductoMusica producto = optEquipo.get();
+
+        if (producto.getStock() == null || producto.getStock() <= 0) {
+            redirectAttributes.addFlashAttribute("errorAlquiler", "El producto '" + producto.getTitulo() + "' no tiene unidades disponibles en stock para alquiler.");
+            return "redirect:/alquileres";
+        }
 
         if (fechaInicio == null || fechaFin == null) {
             redirectAttributes.addFlashAttribute("errorAlquiler", "Debes especificar las fechas de inicio y fin.");
-            return "redirect:/alquileres/reserva?equipoId=" + idEquipo;
+            return "redirect:/alquileres/reserva?equipoId=" + targetId;
         }
 
         if (fechaInicio.isBefore(LocalDate.now())) {
             redirectAttributes.addFlashAttribute("errorAlquiler", "La fecha de inicio no puede ser anterior a hoy.");
-            return "redirect:/alquileres/reserva?equipoId=" + idEquipo;
+            return "redirect:/alquileres/reserva?equipoId=" + targetId;
         }
 
         if (fechaFin.isBefore(fechaInicio)) {
             redirectAttributes.addFlashAttribute("errorAlquiler", "La fecha de fin debe ser igual o posterior a la fecha de inicio.");
-            return "redirect:/alquileres/reserva?equipoId=" + idEquipo;
+            return "redirect:/alquileres/reserva?equipoId=" + targetId;
         }
 
         long dias = ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
-        BigDecimal montoAlquiler = equipo.getPrecio_alquiler_dia().multiply(BigDecimal.valueOf(dias));
+        BigDecimal precioDia = (producto.getPrecio_alquiler_dia() != null && producto.getPrecio_alquiler_dia().compareTo(BigDecimal.ZERO) > 0)
+                ? producto.getPrecio_alquiler_dia()
+                : (producto.getPrecio_venta() != null ? producto.getPrecio_venta().multiply(new BigDecimal("0.10")).setScale(2, RoundingMode.HALF_UP) : new BigDecimal("2.00"));
 
-        // Depósito de garantía: 30% del valor comercial (precio_venta)
-        BigDecimal depositoGarantia = equipo.getPrecio_venta()
+        BigDecimal montoAlquiler = precioDia.multiply(BigDecimal.valueOf(dias));
+
+        // Depósito de garantía: 30% dinámico del valor comercial (precio_venta)
+        BigDecimal depositoGarantia = producto.getPrecio_venta()
                 .multiply(new BigDecimal("0.30"))
                 .setScale(2, RoundingMode.HALF_UP);
 
@@ -135,12 +158,12 @@ public class AlquilerController {
                 montoAlquiler,
                 "RESERVADO",
                 cliente,
-                equipo
+                producto
         );
 
         alquilerEquipoRepository.save(alquiler);
         redirectAttributes.addFlashAttribute("mensajeExito",
-                "Reserva confirmada (" + codigoAlquiler + "). Depósito de garantía: $" + depositoGarantia);
+                "Reserva confirmada (" + codigoAlquiler + ") para '" + producto.getTitulo() + "' (" + producto.getFormato() + "). Depósito de garantía en custodia (30%): $" + depositoGarantia);
         return "redirect:/alquileres/mis-reservas";
     }
 
