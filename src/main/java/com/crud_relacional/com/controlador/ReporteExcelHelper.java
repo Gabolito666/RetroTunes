@@ -304,7 +304,7 @@ public class ReporteExcelHelper {
 
     private static void crearPestanaInventario(Workbook workbook, String nombre, List<ProductoMusica> lista, CellStyle headerStyle, CellStyle currencyStyle) {
         Sheet sheet = workbook.createSheet(nombre);
-        String[] cols = {"ID", "SKU", "Título", "Formato", "Precio Venta", "Alquiler / Día", "Stock Actual", "Spotify Album ID"};
+        String[] cols = {"ID", "SKU", "Título", "Formato", "Lanzamiento", "Precio Venta", "Alquiler / Día", "Stock Actual", "Spotify Album ID"};
 
         Row h = sheet.createRow(0);
         for (int i = 0; i < cols.length; i++) {
@@ -320,17 +320,18 @@ public class ReporteExcelHelper {
             r.createCell(1).setCellValue(p.getSku());
             r.createCell(2).setCellValue(p.getTitulo());
             r.createCell(3).setCellValue(p.getFormato());
+            r.createCell(4).setCellValue(p.getFecha_lanzamiento() != null ? p.getFecha_lanzamiento() : "N/A");
 
-            Cell cVenta = r.createCell(4);
+            Cell cVenta = r.createCell(5);
             cVenta.setCellValue(p.getPrecio_venta().doubleValue());
             cVenta.setCellStyle(currencyStyle);
 
-            Cell cAlq = r.createCell(5);
+            Cell cAlq = r.createCell(6);
             cAlq.setCellValue(p.getPrecio_alquiler_dia().doubleValue());
             cAlq.setCellStyle(currencyStyle);
 
-            r.createCell(6).setCellValue(p.getStock());
-            r.createCell(7).setCellValue(p.getSpotify_album_id() != null ? p.getSpotify_album_id() : "N/A");
+            r.createCell(7).setCellValue(p.getStock());
+            r.createCell(8).setCellValue(p.getSpotify_album_id() != null ? p.getSpotify_album_id() : "N/A");
         }
 
         for (int i = 0; i < cols.length; i++) sheet.autoSizeColumn(i);

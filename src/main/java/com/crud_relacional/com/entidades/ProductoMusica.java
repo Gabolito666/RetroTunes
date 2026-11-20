@@ -52,6 +52,9 @@ public class ProductoMusica implements Serializable {
     @Column(name = "animated_artwork_url", length = 500, nullable = true)
     private String animated_artwork_url;
 
+    @Column(name = "fecha_lanzamiento", length = 50, nullable = true)
+    private String fecha_lanzamiento;
+
     @PrePersist
     public void prePersist() {
         if (this.sku == null || this.sku.isBlank()) {
@@ -92,6 +95,11 @@ public class ProductoMusica implements Serializable {
         this.spotify_album_id = spotify_album_id;
         this.imagen_url = imagen_url;
         this.animated_artwork_url = animated_artwork_url;
+    }
+
+    public ProductoMusica(String sku, String titulo, String formato, BigDecimal precio_venta, BigDecimal precio_alquiler_dia, Integer stock, String spotify_album_id, String imagen_url, String animated_artwork_url, String fecha_lanzamiento) {
+        this(sku, titulo, formato, precio_venta, precio_alquiler_dia, stock, spotify_album_id, imagen_url, animated_artwork_url);
+        this.fecha_lanzamiento = fecha_lanzamiento;
     }
 
     public Long getId_producto() {
@@ -188,5 +196,21 @@ public class ProductoMusica implements Serializable {
 
     public void setAnimatedArtworkUrl(String animatedArtworkUrl) {
         this.animated_artwork_url = animatedArtworkUrl;
+    }
+
+    public String getFecha_lanzamiento() {
+        return fecha_lanzamiento;
+    }
+
+    public void setFecha_lanzamiento(String fecha_lanzamiento) {
+        this.fecha_lanzamiento = fecha_lanzamiento;
+    }
+
+    public String getFechaLanzamiento() {
+        return fecha_lanzamiento;
+    }
+
+    public void setFechaLanzamiento(String fechaLanzamiento) {
+        this.fecha_lanzamiento = fechaLanzamiento;
     }
 }

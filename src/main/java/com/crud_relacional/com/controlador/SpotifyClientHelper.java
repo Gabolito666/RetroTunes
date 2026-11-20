@@ -34,6 +34,7 @@ public class SpotifyClientHelper {
     private String tokenAcceso;
     private Instant tokenExpiracion = Instant.MIN;
     private final Map<String, String> cacheCaratulas = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, String> cacheFechasLanzamiento = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<String, AlbumDto> cacheAlbumes = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static String sanitizarAlbumId(String input) {
@@ -118,7 +119,12 @@ public class SpotifyClientHelper {
                 if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                     Map<String, Object> body = response.getBody();
                     String nombre = (String) body.get("name");
-                    String fecha = (String) body.get("release_date");
+                    String fecha = extraerFechaLanzamientoDeJson(body);
+                    if (fecha == null || fecha.isBlank()) {
+                        fecha = "1973-03-01";
+                    } else {
+                        cacheFechasLanzamiento.put(cleanId, fecha);
+                    }
 
                     String artista = "Varios Artistas";
                     List<Map<String, Object>> artistas = (List<Map<String, Object>>) body.get("artists");
@@ -220,6 +226,28 @@ public class SpotifyClientHelper {
         return null;
     }
 
+    public static String extraerFechaLanzamientoDeJson(Map<String, Object> body) {
+        if (body == null) {
+            return null;
+        }
+        Object releaseDate = body.get("release_date");
+        if (releaseDate != null && !releaseDate.toString().isBlank()) {
+            return releaseDate.toString().trim();
+        }
+        return null;
+    }
+
+    public static String extraerAnioDeTitulo(String titulo) {
+        if (titulo == null || titulo.isBlank()) {
+            return null;
+        }
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\b(19\\d\\d|20\\d\\d)\\b").matcher(titulo);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     public String obtenerCaratula(String spotifyAlbumId) {
         String cleanId = sanitizarAlbumId(spotifyAlbumId);
@@ -240,7 +268,12 @@ public class SpotifyClientHelper {
                 String url = "https://api.spotify.com/v1/albums/" + cleanId;
                 ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
                 if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                    String img = extraerCaratulaDeJson(response.getBody());
+                    Map<String, Object> body = response.getBody();
+                    String img = extraerCaratulaDeJson(body);
+                    String fecha = extraerFechaLanzamientoDeJson(body);
+                    if (fecha != null && !fecha.isBlank()) {
+                        cacheFechasLanzamiento.put(cleanId, fecha);
+                    }
                     if (img != null && !img.isBlank()) {
                         cacheCaratulas.put(cleanId, img);
                         return img;
@@ -275,9 +308,78 @@ public class SpotifyClientHelper {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
+    public String obtenerFechaLanzamiento(String spotifyAlbumId) {
+        String cleanId = sanitizarAlbumId(spotifyAlbumId);
+        if (cleanId == null || cleanId.isBlank()) {
+            return null;
+        }
+
+        if (cacheFechasLanzamiento.containsKey(cleanId)) {
+            return cacheFechasLanzamiento.get(cleanId);
+        }
+
+        if (cacheAlbumes.containsKey(cleanId)) {
+            AlbumDto cached = cacheAlbumes.get(cleanId);
+            if (cached.fechaLanzamiento() != null && !cached.fechaLanzamiento().isBlank()) {
+                cacheFechasLanzamiento.put(cleanId, cached.fechaLanzamiento());
+                return cached.fechaLanzamiento();
+            }
+        }
+
+        String token = obtenerToken();
+        if (token != null) {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setBearerAuth(token);
+                HttpEntity<Void> entity = new HttpEntity<>(headers);
+                String url = "https://api.spotify.com/v1/albums/" + cleanId;
+                ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    Map<String, Object> body = response.getBody();
+                    String fecha = extraerFechaLanzamientoDeJson(body);
+                    String img = extraerCaratulaDeJson(body);
+                    if (img != null && !img.isBlank()) {
+                        cacheCaratulas.put(cleanId, img);
+                    }
+                    if (fecha != null && !fecha.isBlank()) {
+                        cacheFechasLanzamiento.put(cleanId, fecha);
+                        return fecha;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        // Fallback a mapa estático oficial de fechas si existe
+        if (FECHAS_SPOTIFY_OFICIALES.containsKey(cleanId)) {
+            String estatica = FECHAS_SPOTIFY_OFICIALES.get(cleanId);
+            cacheFechasLanzamiento.put(cleanId, estatica);
+            return estatica;
+        }
+
+        return null;
+    }
+
     private AlbumDto fallbackAlbum(String id, String titulo, String formato) {
         return fallbackAlbum(id, titulo, formato, null);
     }
+
+    private static final Map<String, String> FECHAS_SPOTIFY_OFICIALES = Map.ofEntries(
+            Map.entry("1pb3je8gXTs5dpRRTKhHRC", "2023-06-09"), // Noah Kahan - Stick Season (We'll All Be Here Forever 2LP)
+            Map.entry("50ZenUP4O2Q5eCy2NRNvuz", "2022-10-14"), // Noah Kahan - Stick Season Standard
+            Map.entry("2iMF2NlOZMfBTdHyubrg6y", "1989-05-29"), // Hombres G - Voy a pasármelo bien
+            Map.entry("56bdWeO40o3WfAD2Lja4dl", "2024-06-21"), // Gracie Abrams - The Secret of Us
+            Map.entry("4uG8q3GPuGHQlGeSpRJbtv", "1994-02-01"), // Green Day - Dookie
+            Map.entry("0bUTHLuuETwgVsc9L7xR3t", "2005-05-23"), // Gorillaz - Demon Days
+            Map.entry("0k2JGzYRZQC3s3ZNTcyHoA", "1995-06-29"), // Soda Stereo - Sueño Stereo
+            Map.entry("33VjH4cujQd33gXl0vRz9B", "1994-08-15"), // Enanitos Verdes - Big Yumo
+            Map.entry("0ETFjACtuP2ADo6LFhL6HN", "1969-09-26"), // The Beatles - Abbey Road
+            Map.entry("4LH4d3cOWNNXdJwFd4G1kc", "1973-03-01"), // Pink Floyd - The Dark Side of the Moon
+            Map.entry("4LH4d3cOWNNsVw41Gqt2kv", "1973-03-01"), // Pink Floyd - The Dark Side of the Moon (alt)
+            Map.entry("2ANVost0y2y52ema1E9xAZ", "1982-11-30"), // Michael Jackson - Thriller
+            Map.entry("1GbtB4K178q79T9vAgj2HN", "1975-11-21")  // Queen - A Night at the Opera
+    );
 
     private static final Map<String, String> CARATULAS_SPOTIFY_OFICIALES = Map.ofEntries(
             Map.entry("1pb3je8gXTs5dpRRTKhHRC", "https://i.scdn.co/image/ab67616d0000b27365a472d8326d4571bf725422"), // Noah Kahan - Stick Season (We'll All Be Here Forever 2LP)
@@ -296,7 +398,15 @@ public class SpotifyClientHelper {
     private AlbumDto fallbackAlbum(String id, String titulo, String formato, String imagenUrlFallback) {
         String nombre = titulo != null ? titulo : "Álbum Clásico Analógico";
         String artista = extraerArtistaDeTitulo(titulo);
-        String fecha = "1973-03-01";
+        String fecha = null;
+
+        if (id != null && FECHAS_SPOTIFY_OFICIALES.containsKey(id)) {
+            fecha = FECHAS_SPOTIFY_OFICIALES.get(id);
+        }
+        if (fecha == null) {
+            String anio = extraerAnioDeTitulo(titulo);
+            fecha = anio != null ? anio : "1973-03-01";
+        }
         
         // Prohibición absoluta de imágenes de stock (Unsplash). Solo carátulas oficiales de Spotify.
         String imagen = (imagenUrlFallback != null && !imagenUrlFallback.isBlank() && !imagenUrlFallback.contains("unsplash")) 

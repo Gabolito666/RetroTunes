@@ -142,20 +142,35 @@ public class CatalogoController {
 
         String spotifyArtistName = album.artista();
         String spotifyCoverUrl = album.imagenUrl();
+        String spotifyFecha = album.fechaLanzamiento();
 
         // Eliminación estricta de imágenes de stock (Unsplash)
         if (producto.getImagen_url() != null && producto.getImagen_url().contains("unsplash")) {
             producto.setImagen_url(null);
         }
 
+        boolean sincronizar = false;
+
         // Si se extrajo una carátula oficial válida de Spotify y la entidad no la tiene o está desactualizada, persistirla
         if (spotifyCoverUrl != null && !spotifyCoverUrl.isBlank() && !spotifyCoverUrl.contains("unsplash")) {
             if (producto.getImagen_url() == null || !producto.getImagen_url().equals(spotifyCoverUrl)) {
                 producto.setImagen_url(spotifyCoverUrl);
-                try {
-                    productoMusicaRepository.save(producto);
-                } catch (Exception ignored) {
-                }
+                sincronizar = true;
+            }
+        }
+
+        // Si se extrajo una fecha de lanzamiento oficial de Spotify y la entidad no la tiene, persistirla
+        if (spotifyFecha != null && !spotifyFecha.isBlank()) {
+            if (producto.getFecha_lanzamiento() == null || producto.getFecha_lanzamiento().isBlank()) {
+                producto.setFecha_lanzamiento(spotifyFecha);
+                sincronizar = true;
+            }
+        }
+
+        if (sincronizar) {
+            try {
+                productoMusicaRepository.save(producto);
+            } catch (Exception ignored) {
             }
         }
 
@@ -312,6 +327,7 @@ public class CatalogoController {
             producto.setSpotify_album_id(null);
             producto.setAnimatedArtworkUrl(null);
             producto.setAnimated_artwork_url(null);
+            producto.setFecha_lanzamiento(null);
 
             if (imagenArchivo != null && !imagenArchivo.isEmpty()) {
                 String rutaSubida = guardarFotoEquipo(imagenArchivo);
@@ -328,19 +344,26 @@ public class CatalogoController {
                 producto.setAnimatedArtworkUrl(extraerAppleMusicAnimatedArtwork(producto.getAnimated_artwork_url()));
             }
 
-            // Soporte para enlaces de Spotify con extracción automática de carátula
+            // Soporte para enlaces de Spotify con extracción automática de carátula y fecha de lanzamiento
             if (producto.getSpotify_album_id() != null && !producto.getSpotify_album_id().isBlank()) {
                 String extractedId = extraerSpotifyAlbumId(producto.getSpotify_album_id());
                 producto.setSpotify_album_id(extractedId);
 
+                SpotifyClientHelper.AlbumDto dto = spotifyClientHelper.obtenerAlbum(extractedId, producto.getTitulo(), producto.getFormato(), null);
+
                 String caratulaApi = spotifyClientHelper.obtenerCaratula(extractedId);
                 if (caratulaApi != null && !caratulaApi.isBlank() && !caratulaApi.contains("unsplash")) {
                     producto.setImagenUrl(caratulaApi);
-                } else {
-                    SpotifyClientHelper.AlbumDto dto = spotifyClientHelper.obtenerAlbum(extractedId, producto.getTitulo(), producto.getFormato(), null);
-                    if (dto != null && dto.imagenUrl() != null && !dto.imagenUrl().isBlank() && !dto.imagenUrl().contains("unsplash")) {
-                        producto.setImagenUrl(dto.imagenUrl());
-                    }
+                } else if (dto != null && dto.imagenUrl() != null && !dto.imagenUrl().isBlank() && !dto.imagenUrl().contains("unsplash")) {
+                    producto.setImagenUrl(dto.imagenUrl());
+                }
+
+                // Extracción automática de la fecha de lanzamiento de Spotify API
+                String fechaApi = spotifyClientHelper.obtenerFechaLanzamiento(extractedId);
+                if (fechaApi != null && !fechaApi.isBlank()) {
+                    producto.setFecha_lanzamiento(fechaApi);
+                } else if (dto != null && dto.fechaLanzamiento() != null && !dto.fechaLanzamiento().isBlank()) {
+                    producto.setFecha_lanzamiento(dto.fechaLanzamiento());
                 }
             }
         }
@@ -428,6 +451,7 @@ public class CatalogoController {
             existente.setSpotify_album_id(null);
             existente.setAnimatedArtworkUrl(null);
             existente.setAnimated_artwork_url(null);
+            existente.setFecha_lanzamiento(null);
 
             if (imagenArchivo != null && !imagenArchivo.isEmpty()) {
                 String rutaSubida = guardarFotoEquipo(imagenArchivo);
@@ -451,15 +475,24 @@ public class CatalogoController {
                 String extractedId = extraerSpotifyAlbumId(producto.getSpotify_album_id());
                 existente.setSpotify_album_id(extractedId);
 
+                SpotifyClientHelper.AlbumDto dto = spotifyClientHelper.obtenerAlbum(extractedId, existente.getTitulo(), existente.getFormato(), null);
+
                 String caratulaApi = spotifyClientHelper.obtenerCaratula(extractedId);
                 if (caratulaApi != null && !caratulaApi.isBlank()) {
                     existente.setImagenUrl(caratulaApi);
-                } else {
-                    SpotifyClientHelper.AlbumDto dto = spotifyClientHelper.obtenerAlbum(extractedId, existente.getTitulo(), existente.getFormato(), null);
-                    if (dto != null && dto.imagenUrl() != null && !dto.imagenUrl().isBlank()) {
-                        existente.setImagenUrl(dto.imagenUrl());
-                    }
+                } else if (dto != null && dto.imagenUrl() != null && !dto.imagenUrl().isBlank()) {
+                    existente.setImagenUrl(dto.imagenUrl());
                 }
+
+                // Extracción automática de la fecha de lanzamiento de Spotify API
+                String fechaApi = spotifyClientHelper.obtenerFechaLanzamiento(extractedId);
+                if (fechaApi != null && !fechaApi.isBlank()) {
+                    existente.setFecha_lanzamiento(fechaApi);
+                } else if (dto != null && dto.fechaLanzamiento() != null && !dto.fechaLanzamiento().isBlank()) {
+                    existente.setFecha_lanzamiento(dto.fechaLanzamiento());
+                }
+            } else if (producto.getFecha_lanzamiento() != null && !producto.getFecha_lanzamiento().isBlank()) {
+                existente.setFecha_lanzamiento(producto.getFecha_lanzamiento().trim());
             }
         }
 

@@ -103,7 +103,10 @@ public class DataInitializer implements CommandLineRunner {
                             new BigDecimal("39.99"),
                             new BigDecimal("4.50"),
                             15,
-                            "0ETFjACtuP2ADo6LFhL6HN"
+                            "0ETFjACtuP2ADo6LFhL6HN",
+                            "https://i.scdn.co/image/ab67616d0000b273dc30583ba717007b00cceb25",
+                            null,
+                            "1969-09-26"
                     ),
                     new ProductoMusica(
                             "CAS-0001",
@@ -112,7 +115,10 @@ public class DataInitializer implements CommandLineRunner {
                             new BigDecimal("19.50"),
                             new BigDecimal("2.50"),
                             10,
-                            "2ANVost0y2y52ema1E9xAZ"
+                            "2ANVost0y2y52ema1E9xAZ",
+                            null,
+                            null,
+                            "1982-11-30"
                     ),
                     new ProductoMusica(
                             "CD-0001",
@@ -121,7 +127,10 @@ public class DataInitializer implements CommandLineRunner {
                             new BigDecimal("15.90"),
                             new BigDecimal("1.75"),
                             25,
-                            "4LH4d3cOWNNsVw41Gqt2kv"
+                            "4LH4d3cOWNNsVw41Gqt2kv",
+                            "https://i.scdn.co/image/ab67616d0000b273ea7caaff71dea1051d49b2fe",
+                            null,
+                            "1973-03-01"
                     ),
                     new ProductoMusica(
                             "EQP-0001",
@@ -130,6 +139,9 @@ public class DataInitializer implements CommandLineRunner {
                             new BigDecimal("129.99"),
                             new BigDecimal("15.00"),
                             6,
+                            null,
+                            null,
+                            null,
                             null
                     )
             );
@@ -155,6 +167,13 @@ public class DataInitializer implements CommandLineRunner {
                     if (cleanId != null && !cleanId.equals(p.getSpotify_album_id())) {
                         p.setSpotify_album_id(cleanId);
                         modificado = true;
+                    }
+                    if (p.getFecha_lanzamiento() == null || p.getFecha_lanzamiento().isBlank()) {
+                        String fecha = spotifyClientHelper.obtenerFechaLanzamiento(cleanId);
+                        if (fecha != null && !fecha.isBlank()) {
+                            p.setFecha_lanzamiento(fecha);
+                            modificado = true;
+                        }
                     }
                 }
                 if (modificado) {

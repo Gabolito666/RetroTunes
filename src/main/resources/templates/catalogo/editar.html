@@ -159,6 +159,25 @@
                                 </div>
                             </div>
 
+                            <!-- Fecha de Lanzamiento -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="fecha_lanzamiento" class="form-label-retro mb-0">Fecha de lanzamiento del álbum</label>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.72rem;">
+                                        <i class="bi bi-calendar-check me-1"></i> Spotify API
+                                    </span>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text-retro"><i class="bi bi-calendar3"></i></span>
+                                    <input type="text" id="fecha_lanzamiento" th:field="*{fecha_lanzamiento}" 
+                                           class="form-control form-control-retro meta-mono" 
+                                           placeholder="ej. 1969-09-26 o 1982">
+                                </div>
+                                <small class="meta-mono mt-1 d-block text-secondary">
+                                    Sincronizada y obtenida automáticamente desde la API de Spotify al vincular el ID de álbum, o editable manualmente.
+                                </small>
+                            </div>
+
                             <!-- Opción de Animated Artwork desde Apple Music Artwork Finder -->
                             <div>
                                 <div class="d-flex justify-content-between align-items-center mb-1">

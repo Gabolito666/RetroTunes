@@ -40,8 +40,15 @@ CREATE TABLE IF NOT EXISTS public.productos_musica (
     precio_venta NUMERIC(10, 2) NOT NULL,
     precio_alquiler_dia NUMERIC(10, 2) NOT NULL,
     stock INTEGER NOT NULL CHECK (stock >= 0),
-    spotify_album_id VARCHAR(255)
+    spotify_album_id VARCHAR(255),
+    imagen_url VARCHAR(500),
+    animated_artwork_url VARCHAR(500),
+    fecha_lanzamiento VARCHAR(50)
 );
+
+ALTER TABLE public.productos_musica ADD COLUMN IF NOT EXISTS imagen_url VARCHAR(500);
+ALTER TABLE public.productos_musica ADD COLUMN IF NOT EXISTS animated_artwork_url VARCHAR(500);
+ALTER TABLE public.productos_musica ADD COLUMN IF NOT EXISTS fecha_lanzamiento VARCHAR(50);
 
 -- ==============================================================================
 -- ÍNDICES B-TREE Y PARCIALES DE ALTO RENDIMIENTO

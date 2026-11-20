@@ -274,6 +274,46 @@ class DemoApplicationTests {
     }
 
     @Test
+    @DisplayName("Spotify API: Extracción automática de fecha de lanzamiento desde JSON y Helper")
+    void testSpotifyReleaseDateExtraction() {
+        // 1. Simulación de respuesta JSON de la API de Spotify con release_date
+        java.util.Map<String, Object> fakeSpotifyJson = java.util.Map.of(
+                "id", "0ETFjACtuP2ADo6LFhL6HN",
+                "name", "Abbey Road",
+                "release_date", "1969-09-26",
+                "release_date_precision", "day"
+        );
+
+        String fechaJson = com.crud_relacional.com.controlador.SpotifyClientHelper.extraerFechaLanzamientoDeJson(fakeSpotifyJson);
+        assertNotNull(fechaJson);
+        assertEquals("1969-09-26", fechaJson, "La fecha de lanzamiento debe coincidir con release_date de la API");
+
+        // 2. Verificación de fallback nulo para JSON vacío o sin campo
+        String fechaNull = com.crud_relacional.com.controlador.SpotifyClientHelper.extraerFechaLanzamientoDeJson(java.util.Collections.emptyMap());
+        assertNull(fechaNull);
+
+        // 3. Extracción de año desde título con formato (YYYY)
+        String anioTitulo = com.crud_relacional.com.controlador.SpotifyClientHelper.extraerAnioDeTitulo("Gorillaz - Demon Days (2005)");
+        assertEquals("2005", anioTitulo);
+
+        // 4. Verificación de persistencia de fecha_lanzamiento en ProductoMusica
+        ProductoMusica vinilo = productoMusicaRepository.findBySku("VIN-0001").orElse(null);
+        assertNotNull(vinilo, "El vinilo VIN-0001 debe existir");
+        assertEquals("1969-09-26", vinilo.getFecha_lanzamiento(), "Abbey Road debe tener su fecha oficial de lanzamiento 1969-09-26");
+
+        // 5. Verificación de obtención de fecha vía SpotifyClientHelper
+        com.crud_relacional.com.controlador.SpotifyClientHelper helper = new com.crud_relacional.com.controlador.SpotifyClientHelper();
+        String fechaBeatles = helper.obtenerFechaLanzamiento("0ETFjACtuP2ADo6LFhL6HN");
+        assertEquals("1969-09-26", fechaBeatles);
+
+        String fechaThriller = helper.obtenerFechaLanzamiento("2ANVost0y2y52ema1E9xAZ");
+        assertEquals("1982-11-30", fechaThriller);
+
+        String fechaPinkFloyd = helper.obtenerFechaLanzamiento("4LH4d3cOWNNXdJwFd4G1kc");
+        assertEquals("1973-03-01", fechaPinkFloyd);
+    }
+
+    @Test
     @DisplayName("Seguridad: Cifrado BCrypt de contraseñas y validación de hash")
     void testBCryptPasswordHashing() {
         assertNotNull(passwordEncoder, "El bean PasswordEncoder debe estar disponible");
