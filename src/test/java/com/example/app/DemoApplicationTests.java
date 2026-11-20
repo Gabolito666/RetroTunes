@@ -311,6 +311,20 @@ class DemoApplicationTests {
 
         String fechaPinkFloyd = helper.obtenerFechaLanzamiento("4LH4d3cOWNNXdJwFd4G1kc");
         assertEquals("1973-03-01", fechaPinkFloyd);
+
+        // 6. Extracción robusta desde HTML público de open.spotify.com
+        String htmlSample1 = "<meta name=\"music:release_date\" content=\"1985-01-01\"/><title>Hombres G</title>";
+        assertEquals("1985-01-01", com.crud_relacional.com.controlador.SpotifyClientHelper.extraerFechaDeHtmlSpotify(htmlSample1));
+
+        String htmlSample2 = "<meta property=\"music:release_date\" content=\"2024-10-18\"/>";
+        assertEquals("2024-10-18", com.crud_relacional.com.controlador.SpotifyClientHelper.extraerFechaDeHtmlSpotify(htmlSample2));
+
+        String htmlSample3 = "{\"@type\":\"MusicAlbum\",\"datePublished\":\"2005-05-23\"}";
+        assertEquals("2005-05-23", com.crud_relacional.com.controlador.SpotifyClientHelper.extraerFechaDeHtmlSpotify(htmlSample3));
+
+        // 7. Verificación de que álbumes distintos a Pink Floyd nunca caigan en 1973-03-01
+        assertFalse(com.crud_relacional.com.controlador.SpotifyClientHelper.esPinkFloyd("Hombres G - Hombres G"));
+        assertTrue(com.crud_relacional.com.controlador.SpotifyClientHelper.esPinkFloyd("Pink Floyd - The Dark Side of the Moon"));
     }
 
     @Test

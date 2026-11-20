@@ -59,7 +59,10 @@
                         </div>
                         <div class="text-end">
                             <span class="meta-mono text-muted d-block" style="font-size: 0.75rem;">LANZAMIENTO</span>
-                            <span class="meta-mono text-secondary" th:text="${(producto.fecha_lanzamiento != null and !#strings.isEmpty(producto.fecha_lanzamiento)) ? producto.fecha_lanzamiento : (albumSpotify != null ? albumSpotify.fechaLanzamiento : '1973')}">1973</span>
+                            <span class="meta-mono text-secondary" 
+                                  th:text="${(producto.fecha_lanzamiento != null and !#strings.isEmpty(producto.fecha_lanzamiento) and (producto.fecha_lanzamiento != '1973-03-01' or #strings.contains(#strings.toLowerCase(producto.titulo), 'pink floyd'))) ? producto.fecha_lanzamiento : ((albumSpotify != null and albumSpotify.fechaLanzamiento != null and !#strings.isEmpty(albumSpotify.fechaLanzamiento)) ? albumSpotify.fechaLanzamiento : 'Desconocida')}">
+                                Desconocida
+                            </span>
                         </div>
                     </div>
                 </div>

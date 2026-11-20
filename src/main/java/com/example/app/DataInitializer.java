@@ -168,7 +168,12 @@ public class DataInitializer implements CommandLineRunner {
                         p.setSpotify_album_id(cleanId);
                         modificado = true;
                     }
-                    if (p.getFecha_lanzamiento() == null || p.getFecha_lanzamiento().isBlank()) {
+                    boolean esPink = SpotifyClientHelper.esPinkFloyd(p.getTitulo());
+                    boolean fechaErronea = p.getFecha_lanzamiento() == null
+                            || p.getFecha_lanzamiento().isBlank()
+                            || ("1973-03-01".equals(p.getFecha_lanzamiento()) && !esPink);
+
+                    if (fechaErronea) {
                         String fecha = spotifyClientHelper.obtenerFechaLanzamiento(cleanId);
                         if (fecha != null && !fecha.isBlank()) {
                             p.setFecha_lanzamiento(fecha);

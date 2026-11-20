@@ -159,9 +159,14 @@ public class CatalogoController {
             }
         }
 
-        // Si se extrajo una fecha de lanzamiento oficial de Spotify y la entidad no la tiene, persistirla
+        // Si se extrajo una fecha de lanzamiento oficial de Spotify: actualizar si está vacía o si tenía el valor erróneo residual 1973-03-01
         if (spotifyFecha != null && !spotifyFecha.isBlank()) {
-            if (producto.getFecha_lanzamiento() == null || producto.getFecha_lanzamiento().isBlank()) {
+            boolean esPink = SpotifyClientHelper.esPinkFloyd(producto.getTitulo());
+            boolean fechaErronea = producto.getFecha_lanzamiento() == null
+                    || producto.getFecha_lanzamiento().isBlank()
+                    || ("1973-03-01".equals(producto.getFecha_lanzamiento()) && !esPink);
+
+            if (fechaErronea || (!spotifyFecha.equals(producto.getFecha_lanzamiento()) && (!"1973-03-01".equals(spotifyFecha) || esPink))) {
                 producto.setFecha_lanzamiento(spotifyFecha);
                 sincronizar = true;
             }
